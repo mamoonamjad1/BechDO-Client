@@ -18,6 +18,9 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import NotificationDrawer from "../Home/Notifications";
 import { useDispatch, useSelector } from "react-redux";
 import { SetUser } from "../../redux/actions/userAuth";
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PersonIcon from '@mui/icons-material/Person';
+import PaidIcon from '@mui/icons-material/Paid';
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -71,6 +74,8 @@ const NavBar = () => {
   const [openNotifications, setOpenNotifications] = React.useState(false);
   const decodedUser = useSelector((state) => state.authReducer);
   const  dispatchRedux = useDispatch()
+  const notificationCount = useSelector((state) => state.notificationReducer.notificationCount);
+  console.log("NNNNNNN",notificationCount)
   const navigate = useNavigate();
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -239,12 +244,23 @@ const NavBar = () => {
               onClick={handleNotifications}
               color="inherit"
             >
-              <Badge badgeContent={2} color="warning">
+              <Badge badgeContent={notificationCount} color="warning">
                 <CircleNotificationsIcon
                   fontSize="large"
                   onClick={() => console.log("Clicked")}
                 />
               </Badge>
+            </IconButton>
+            <IconButton
+                          edge="end"
+                          aria-haspopup="true"
+                          //onClick={handleNotifications}
+                          color="inherit"
+            >
+              <Badge badgeContent={1} color="error">
+                <PaidIcon fontSize="large"/>
+              </Badge>
+
             </IconButton>
             <IconButton
               edge="end"

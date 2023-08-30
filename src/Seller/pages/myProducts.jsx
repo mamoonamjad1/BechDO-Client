@@ -10,6 +10,8 @@ import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt';
 import axios from 'axios';
 import jwtDecode from 'jwt-decode';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { SetEarnings } from '../../redux/actions/earnings';
 
 const CenteredContainer = styled('div')({
   display: 'flex',
@@ -29,7 +31,7 @@ const ResponsiveButton = styled(Button)(({ theme }) => ({
 
 const MyProducts = () => {
   const [open, setOpen] = React.useState(false);
-
+  const dispatchRedux = useDispatch
   const handleOpen = () => {
     setOpen(true);
   };

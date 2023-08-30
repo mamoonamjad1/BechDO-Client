@@ -16,6 +16,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import moment from 'moment/moment';
 import { useSelector } from 'react-redux';
+
 const MainImageWrapper = styled(CardMedia)({
   width: '100%',
   height: '100%',
@@ -151,7 +152,7 @@ const SingleProduct = () => {
   return (
     <MainContainer container justifyContent="center" alignItems="center">
       <ProductInfoContainer container justifyContent="center" alignItems="center" spacing={3}>
-        <BidDialog open={open} handleCloseBid={handleCloseBid} productID={id} />
+        <BidDialog open={open} handleCloseBid={handleCloseBid} productID={id} price={product.currentPrice} />
         <Grid item xs={12} md={6}>
           <Card>
             <MainImageWrapper>

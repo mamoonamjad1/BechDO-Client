@@ -5,7 +5,6 @@ const initialState = {
 
 const authReducer = (state = initialState, action) => {
     const { type, payload } = action
-    console.log("PPP",payload)
     switch (type) {
         case CURRENTPRICE:
             return {

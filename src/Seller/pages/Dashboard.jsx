@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useEffect,useState } from 'react';
 import { styled } from '@mui/material/styles';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
@@ -23,12 +24,13 @@ export default function DashBoard() {
   const productsPerPage = 6;
   const totalPages = Math.ceil(data.length / productsPerPage);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [amount, setAmount] = useState(0);
   const [disabledItems, setDisabledItems] = React.useState([]);
 
   React.useEffect(() => {
     axios.get(`http://localhost:4000/product/get/${decode._id}`)
       .then((res) => {
-        console.log("RES:", res);
+        console.log("Dashy RES:", res);
         setData(res.data);
         console.log("RESSS", data);
       })
@@ -57,47 +59,97 @@ export default function DashBoard() {
       });
     }
   };
+  useEffect(() => {
+    // Fetch ad data for the logged-in user
+    const fetchAdData = async () => {
+      try {
+        const token = localStorage.getItem("sellerToken");
+        const decode = jwtDecode(token);
+        console.log("ID", decode._id);
+        axios
+          .get(`http://localhost:4000/product/total/earning/${decode._id}`)
+          .then((res) => {
+            console.log("Dash Response", res.data);
+            setAmount(res.data)
+          });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchAdData();
+  }, []);
 
   return (
     <>
-      <Paper
-        sx={{
-          p: 2,
-          margin: 'auto',
-          mt: 5,
-          maxWidth: 800,
-          flexGrow: 1,
-          backgroundColor: 'orange',
-          color: 'white',
-          boxShadow: '10px 10px 10px rgba(0.5, 0.5, 0, 0.5)',
-        }}
-      >
-        <Grid container justifyContent="center" alignItems="center" spacing={2}>
-          <Grid item xs={12} sm={6} md={4} sx={{ paddingRight: { xs: 0, sm: 2 } }}>
-            <ButtonBase sx={{ width: 250, height: 180 }}>
-              <Img alt="complex" src={decode.image} sx={{ borderRadius: '50%' }} />
-            </ButtonBase>
-          </Grid>
-          <Grid item xs={12} sm={6} md={8}>
-            <Grid container direction="column" spacing={1} sx={{ mt: { xs: 2, sm: 0 }, marginLeft: { xs: 0, sm: 2 } }}>
-              <Grid item xs>
-                <Typography variant="h6">
-                  Name: {decode.firstName} {decode.lastName}
-                </Typography>
-                <Typography variant="subtitle1">
-                  Email: {decode.email}
-                </Typography>
-                <Typography variant="subtitle1">
-                  Address: {decode.address}
-                </Typography>
-                <Typography variant="subtitle1">
-                  Phone: {decode.phoneNumber}
-                </Typography>
+      <Grid container>
+        <Grid item xs={12} sm={6} md={8}>
+          <Paper
+            sx={{
+              p:1,
+              margin:'auto',
+              mt: 5,
+              margin:'auto',
+              maxWidth: 800,
+              flexGrow: 1,
+              backgroundColor: 'grey',
+              color: 'black',
+              boxShadow: '10px 10px 10px rgba(0.5, 0.5, 0, 0.5)',
+            }}
+          >
+            <Grid container justifyContent="center" alignItems="center" spacing={2}>
+              <Grid item xs={12} sm={6} md={4} sx={{ paddingRight: { xs: 0, sm: 2 } }}>
+                <ButtonBase sx={{ width: 250, height: 180 }}>
+                  <Img alt="complex" src={decode.image} sx={{ borderRadius: '50%' }} />
+                </ButtonBase>
+              </Grid>
+              <Grid item xs={12} sm={6} md={8}>
+                <Grid container direction="column" spacing={1} sx={{ mt: { xs: 2, sm: 0 }, marginLeft: { xs: 0, sm: 2 } }}>
+                  <Grid item xs>
+                    <Typography variant="h6">
+                      Name: {decode.firstName} {decode.lastName}
+                    </Typography>
+                    <Typography variant="subtitle1">
+                      Email: {decode.email}
+                    </Typography>
+                    <Typography variant="subtitle1">
+                      Address: {decode.address}
+                    </Typography>
+                    <Typography variant="subtitle1">
+                      Phone: {decode.phoneNumber}
+                    </Typography>
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
+          </Paper>
         </Grid>
-      </Paper>
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper
+            sx={{
+              p: 3,
+             margin: 'auto',
+              mt: 5,
+              mr:5,
+              flexGrow: 1,
+              backgroundColor: 'orange',
+              color: 'white',
+              boxShadow: '10px 10px 10px rgba(0.5, 0.5, 0, 0.5)',
+            }}
+          >
+            <Typography variant="h6"  >
+              Total Earning
+            </Typography>
+            <Typography variant="h4">
+              ${amount.totalEarnings} {/* Display the total currentPrice */}
+            </Typography>
+            <Button fullWidth variant='contained' sx={{backgroundColor:'#0C134F', '&:hover':{backgroundColor:'lightblue' , color:'black'}}}>
+                Cash Out
+            </Button>
+            {/* Add any additional information here */}
+          </Paper>
+        </Grid>
+      </Grid>
 
       <Box sx={{ m: 4, mb: 4 }}>
         <Box sx={{ textAlign: 'center', backgroundColor: '#0C134F', color: 'white' }}>

@@ -16,13 +16,16 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { SetPrice } from "../../redux/actions/priceCondition";
 
-const BidDialog = ({ open, handleCloseBid, productID }) => {
+
+const BidDialog = ({ open, handleCloseBid, productID, price }) => {
+
   const giphyGifUrl = "https://giphy.com/embed/cPZ6etcejePZ3pvctr/video";
   const [currentPrice, setCurrentPrice] = useState("");
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const dispatchRedux = useDispatch()
   const id = useSelector((state)=> state.authReducer.userId)
   const handleBid = () => {
+  
     axios
       .post("http://localhost:4000/auction/bid", {
         productID,
@@ -78,6 +81,9 @@ const BidDialog = ({ open, handleCloseBid, productID }) => {
             // onClick={() => {
             //   setSuccessDialogOpen(true);
             // }}
+            disabled={
+              !price || !price.$numberDecimal || parseFloat(currentPrice) <= parseFloat(price.$numberDecimal) || currentPrice == ''
+            }
           >
             Place Bid
           </Button>
