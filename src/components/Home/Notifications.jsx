@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Drawer from '@mui/material/Drawer';
-import { AppBar, Box, Button, List, ListItem, ListItemText, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, Button, List, ListItem, ListItemText, Toolbar, Typography, Paper } from '@mui/material';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import CloseIcon from '@mui/icons-material/Close';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import moment from 'moment';
-import { SetNotificationCount } from '../../redux/actions/notification'; // Update the path if needed
+import { SetNotificationCount } from '../../redux/actions/notification';
 
 const socket = io('http://localhost:4000');
 
@@ -23,20 +23,16 @@ const NotificationDrawer = ({ open, handleNotificationsClose }) => {
     const handleNotification = (data) => {
       console.log("Socket Notification", data.detail);
       setNotificationQueue((prevQueue) => {
-        // Check if the notification with the same _id already exists in the queue
         const existingNotification = prevQueue.find((notification) => notification._id === data._id);
 
         if (!existingNotification) {
-          // Add the new notification to the front of the queue
           return [{ ...data, createdAt: moment() }, ...prevQueue];
         }
 
-        // If the notification with the same _id exists, return the previous state
         return prevQueue;
       });
 
-      // Update notification counter in Redux state
-      dispatchRedux(SetNotificationCount(notificationCount + 1));
+      dispatchRedux(SetNotificationCount(notificationCount + 0.25));
     };
 
     socket.on('sendNotification', handleNotification);
@@ -54,10 +50,9 @@ const NotificationDrawer = ({ open, handleNotificationsClose }) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
           });
           setNotificationQueue(sortedNotifications);
-          dispatchRedux(SetNotificationCount(sortedNotifications.length)); // Update count
+          dispatchRedux(SetNotificationCount(sortedNotifications.length));
         })
         .catch(() => {
-          toast.error("Error Fetching Notifications");
         });
     } catch (error) {
       console.error(error);
@@ -70,8 +65,7 @@ const NotificationDrawer = ({ open, handleNotificationsClose }) => {
       setNotificationQueue((prevQueue) =>
         prevQueue.filter((notification) => notification._id !== notificationId)
       );
-      // Update notification counter in Redux state
-      dispatchRedux(SetNotificationCount(notificationCount - 1)); // Decrement count
+      dispatchRedux(SetNotificationCount(notificationCount - 1));
     } catch (error) {
       console.error(error);
     }
@@ -81,7 +75,6 @@ const NotificationDrawer = ({ open, handleNotificationsClose }) => {
     try {
       await axios.delete(`http://localhost:4000/notifications/delete/${id}`);
       setNotificationQueue([]);
-      // Reset notification counter in Redux state
       dispatchRedux(SetNotificationCount(0));
     } catch (error) {
       console.error(error);
@@ -90,38 +83,43 @@ const NotificationDrawer = ({ open, handleNotificationsClose }) => {
 
   return (
     <Drawer anchor="right" open={open} onClose={handleNotificationsClose}>
-      <AppBar sx={{ width: 300, backgroundColor: '#0C134F' }} position="static">
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <NotificationsNoneIcon />
-              <Typography variant="h6" sx={{ marginLeft: 1 }}>
-                Notifications
-              </Typography>
+      <Paper sx={{ width: 250, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <AppBar sx={{ backgroundColor: '#0C134F' }} position="static">
+          <Toolbar>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <NotificationsNoneIcon />
+                <Typography variant="h6" sx={{ marginLeft: 1, color: 'white' }}>
+                  Notifications
+                </Typography>
+              </Box>
+              <CloseIcon sx={{ cursor: 'pointer', color: 'white' }} onClick={handleNotificationsClose} />
             </Box>
-            <CloseIcon sx={{ cursor: 'pointer' }} onClick={handleNotificationsClose} />
-          </Box>
-        </Toolbar>
-      </AppBar>
-      <div style={{ width: 300 }}>
-        <List>
+          </Toolbar>
+        </AppBar>
+        <List sx={{ flex: '1 1 auto', overflowY: 'auto' }}>
           {notificationQueue.map((notification, index) => (
-            <React.Fragment key={index}>
-              <ListItem disablePadding sx={{ display: 'flex', alignItems: 'center', borderRadius: '10px', mb: 1, backgroundColor: '#F5F5F5', px: 2 }}>
-                <NotificationsActiveIcon sx={{ color: 'red', pr: 1 }} />
-                <ListItemText primary={notification.detail} secondary={moment(notification.createdAt).format('MMMM D, YYYY h:mm A')} sx={{ mt: 2, mb: 3 }} />
-                <CloseIcon
-                  sx={{ cursor: 'pointer' }}
-                  onClick={() => handleDeleteSingleNotification(notification._id)}
-                />
-              </ListItem>
-            </React.Fragment>
+            <ListItem key={index} disablePadding sx={{ display: 'flex', alignItems: 'center', mb: 1, borderRadius: '5px', border: '1px solid #ccc' }}>
+              <NotificationsActiveIcon fontSize='large' sx={{ color: 'red', pr: 1 }} />
+              <ListItemText
+                primary={
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#333' }}>
+                    {notification.detail}
+                  </Typography>
+                }
+                secondary={moment(notification.createdAt).format('MMMM D, YYYY h:mm A')}
+                sx={{ mt: 2, mb: 3 }}
+              />
+              <CloseIcon sx={{ cursor: 'pointer' }} onClick={() => handleDeleteSingleNotification(notification._id)} />
+            </ListItem>
           ))}
         </List>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2, position: 'absolute', bottom: 0, width: '100%' }}>
-          <Button onClick={handleClearNotifications} variant='outlined' fullWidth>Clear All</Button>
+        <Box sx={{ p: 2 }}>
+          <Button onClick={handleClearNotifications} variant='outlined' fullWidth>
+            Clear All
+          </Button>
         </Box>
-      </div>
+      </Paper>
     </Drawer>
   );
 };

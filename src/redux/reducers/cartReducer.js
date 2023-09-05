@@ -13,6 +13,7 @@ const cartReducer = (state= initialState,action)=>{
         case CART:
             return {
                 ...state,
+                id:payload.productId,
                 count:payload.count,
                 price:payload.price,
                 name:payload.name,

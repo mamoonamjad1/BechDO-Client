@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import { styled, alpha, useTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -10,6 +10,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
 import { Button, Badge } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
@@ -18,9 +19,18 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import NotificationDrawer from "../Home/Notifications";
 import { useDispatch, useSelector } from "react-redux";
 import { SetUser } from "../../redux/actions/userAuth";
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import PersonIcon from '@mui/icons-material/Person';
-import PaidIcon from '@mui/icons-material/Paid';
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import PersonIcon from "@mui/icons-material/Person";
+import PaymentsIcon from '@mui/icons-material/Payments';
+import PaidIcon from "@mui/icons-material/Paid";
+import { io } from "socket.io-client";
+import jwtDecode from "jwt-decode";
+import { CART, NOTIFICATIONS } from "../../redux/Constants";
+import { toast } from "react-toastify";
+import { SetOrderCount } from "../../redux/actions/order";
+import { SetNotificationCount } from '../../redux/actions/notification'; // Update the path if needed
+
+const socket = io("http://localhost:4000/win");
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -73,9 +83,17 @@ const NavBar = () => {
   const [open, setOpen] = React.useState(false);
   const [openNotifications, setOpenNotifications] = React.useState(false);
   const decodedUser = useSelector((state) => state.authReducer);
-  const  dispatchRedux = useDispatch()
-  const notificationCount = useSelector((state) => state.notificationReducer.notificationCount);
-  console.log("NNNNNNN",notificationCount)
+  const dispatchRedux = useDispatch();
+  const [showOrders, setShowOrders] = useState(false);
+  const token = localStorage.getItem("buyerToken");
+
+  const notificationCount = useSelector(
+    (state) => state.notificationReducer.notificationCount
+  );
+  const orderCount = useSelector(
+    (state) => state.orderReducer.orderCount
+  );
+  console.log("NNNNNNN", notificationCount);
   const navigate = useNavigate();
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -98,9 +116,51 @@ const NavBar = () => {
   const handleSearchIconClick = () => {
     setOpen(true);
   };
+  const handlePaidIconClick = () => {
+    if(token){
+      navigate('/cart')
+    }
+    else{
+      navigate('/login')
+    }
+  };
 
-  const token = localStorage.getItem("buyerToken");
-  
+
+
+  useEffect(() => {
+    
+    socket.emit("join", { userId: `${decodedUser.userId}` }, (error) => {
+      if (error) console.log("ERROR: ", error);
+      console.log("JOINED");
+    });
+
+    socket.on("message", (data) => {
+      console.log("RECEIEVE MESSAGE", data);
+      toast.success(`Congratulations on winning the bid for ${data.name} `);
+      dispatchRedux(SetOrderCount(orderCount + 1))
+    });
+
+    // // Fetch orders when the component mounts
+    // const fetchOrders = async () => {
+    //   try {
+    //     // Fetch orders from the backend here using an API call
+    //     const response = await fetch(`http://localhost:4000/order/get/${decodedUser.userId}`); // Replace with your API endpoint
+    //     if (response.ok) {
+    //       const data = await response.json();
+    //       setOrders(data.orders);
+    //     } else {
+    //       console.error("Failed to fetch orders");
+    //     }
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // };
+
+    // if (token) {
+    //   fetchOrders();
+    // }
+  }, [token]);
+
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
@@ -124,7 +184,7 @@ const NavBar = () => {
               Welcome
             </Typography>
             <Typography variant="body1" gutterBottom>
-              Name: {decodedUser.firstName} { decodedUser.lastName}
+              Name: {decodedUser.firstName} {decodedUser.lastName}
             </Typography>
             <Typography variant="body1" gutterBottom>
               Email: {decodedUser.email}
@@ -139,11 +199,16 @@ const NavBar = () => {
               }}
               onClick={() => {
                 localStorage.removeItem("buyerToken");
-                dispatchRedux(SetUser({
-                  firstName:'',
-                  lastName:'',
-                  email:''
-                }))
+                dispatchRedux(SetOrderCount(0))
+                dispatchRedux(SetNotificationCount(0))
+                dispatchRedux(
+                  SetUser({
+                    userId:"",
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                  })
+                );
               }}
             >
               Logout
@@ -243,24 +308,25 @@ const NavBar = () => {
               aria-haspopup="true"
               onClick={handleNotifications}
               color="inherit"
+              sx={{mr:1}}
             >
               <Badge badgeContent={notificationCount} color="warning">
-                <CircleNotificationsIcon
-                  fontSize="large"
+                <NotificationsActiveIcon
+                  fontSize="md"
                   onClick={() => console.log("Clicked")}
                 />
               </Badge>
             </IconButton>
             <IconButton
-                          edge="end"
-                          aria-haspopup="true"
-                          //onClick={handleNotifications}
-                          color="inherit"
+              edge="end"
+              aria-haspopup="true"
+              onClick={handlePaidIconClick}
+              color="inherit"
+              sx={{mr:0.5}}
             >
-              <Badge badgeContent={1} color="error">
-                <PaidIcon fontSize="large"/>
+              <Badge badgeContent={orderCount} color="error">
+                <ShoppingCartIcon fontSize="md" />
               </Badge>
-
             </IconButton>
             <IconButton
               edge="end"
@@ -268,7 +334,7 @@ const NavBar = () => {
               onClick={handleProfileMenuOpen}
               color="inherit"
             >
-              <AccountCircle fontSize="large" />
+              <PersonIcon fontSize="large" />
             </IconButton>
           </div>
         </Toolbar>

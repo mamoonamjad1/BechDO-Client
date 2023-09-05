@@ -1,6 +1,6 @@
 import { CART  } from "../Constants";
 
-export const CART = (data)=>{
+export const SetCart = (data)=>{
     return{
     type: CART,
     data:payload,

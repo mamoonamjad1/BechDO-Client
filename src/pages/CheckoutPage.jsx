@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import {
   Container,
   Paper,
@@ -17,7 +17,8 @@ import {
   DialogActions,
 } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-
+import axios from 'axios';
+ import { useDispatch, useSelector } from 'react-redux';
 const theme = createMuiTheme({
   palette: {
     primary: {
@@ -36,8 +37,9 @@ const CheckoutPage = () => {
     city: '',
     postalCode: '',
   });
-
+  const [cartItems, setCartItems] = React.useState([]);
   const [open, setOpen] = React.useState(false);
+  const user= useSelector((state)=>state.authReducer)
   const [payOnline, setPayOnline] = React.useState(false);
   const [cardDetails, setCardDetails] = React.useState({
     cardNumber: '',
@@ -46,7 +48,14 @@ const CheckoutPage = () => {
     cvv: '',
   });
 
-  const [cashOnDelivery, setCashOnDelivery] = React.useState(false);
+  useEffect(()=>{
+    axios.get(`http://localhost:4000/order/get/${user.userId}`)
+    .then((res)=>{
+    console.log("CART:",res)
+    setCartItems(res.data)
+
+    })
+    },[])
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,16 +75,22 @@ const CheckoutPage = () => {
 
   const handlePayOnlineChange = (e) => {
     setPayOnline(e.target.checked);
-    setCashOnDelivery(false);
+  
   };
 
-  const handleCashOnDeliveryChange = (e) => {
-    setCashOnDelivery(e.target.checked);
-    setPayOnline(false);
-  };
 
   const handleDialogOpen = () => {
-    setOpen(true);
+    //setOpen(true);
+    console.log(formData)
+    axios.post(`http://localhost:4000/order//address/${user.userId}`, formData)
+    .then((res)=>{
+      console.log("Order:",res)
+    })
+    .catch((err)=>{
+      console.log(err)
+    })
+
+
   };
 
   const handleDialogClose = () => {
@@ -89,21 +104,13 @@ const CheckoutPage = () => {
     if (payOnline) {
       console.log('Card details:', cardDetails);
     }
-
-    if (cashOnDelivery) {
-      console.log('Cash on Delivery selected');
-    }
   };
 
-  // Dummy product data
-  const products = [
-    { id: 1, name: 'Product 1', price: 19.99 },
-    { id: 2, name: 'Product 2', price: 29.99 },
-    // Add more products here
-  ];
-
   // Calculate the total amount
-  const totalAmount = products.reduce((total, product) => total + product.price, 0);
+  const totalAmount = cartItems.reduce((total, item) => {
+    const currentPrice = item.products.currentPrice.$numberDecimal.toString(); 
+    return total + parseFloat(currentPrice); // Parse and add the value
+  }, 0);
 
   return (
     <ThemeProvider theme={theme}>
@@ -245,16 +252,6 @@ const CheckoutPage = () => {
                       </Grid>
                     </Grid>
                   )}
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={cashOnDelivery}
-                        onChange={handleCashOnDeliveryChange}
-                        color="primary"
-                      />
-                    }
-                    label="Cash on Delivery"
-                  />
                 </Grid>
                 <Button
                   fullWidth
@@ -278,14 +275,14 @@ const CheckoutPage = () => {
                 Order Summary
               </Typography>
               <Grid container spacing={1}>
-                {products.map((product) => (
+                {cartItems.map((product) => (
                   <Grid item xs={12} key={product.id}>
                     <Typography>
                       <ArrowRightIcon
                         fontSize="small"
                         sx={{ verticalAlign: 'middle', marginRight: '0.5rem' }}
                       />
-                      {product.name} - ${product.price.toFixed(2)}
+                      {product.products.name} - ${product.products.currentPrice.$numberDecimal.toString()}
                     </Typography>
                   </Grid>
                 ))}

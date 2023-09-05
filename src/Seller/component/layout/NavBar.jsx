@@ -19,6 +19,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import { NavLink, useNavigate } from "react-router-dom";
 import logo from '../../assets/logo.jpg';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
 const Img = styled("img")({
   margin: "auto",
@@ -62,6 +63,13 @@ const NavBar = () => {
             </ListItemIcon>
             <ListItemText primary="My Products" />
           </ListItem>
+          <ListItem button component={NavLink} to="/seller/pages/dashboard" exact activeClassName="active" onClick={toggleMobileMenu}>
+            <ListItemIcon>
+              <LocalShippingIcon />
+            </ListItemIcon>
+            <ListItemText primary="Delivery" />
+          </ListItem>
+
           <ListItem button onClick={() => handleLogout()}>
             <ListItemIcon>
               <LogoutIcon />
@@ -114,6 +122,9 @@ const NavBar = () => {
                   </Button>
                   <Button component={NavLink} to="/seller/pages/MyProducts" exact activeClassName="active" color="inherit" startIcon={<StoreIcon />} sx={{ mx: 2 }}>
                     My Products
+                  </Button>
+                  <Button component={NavLink} to="/seller/pages/delivery" exact activeClassName="active" color="inherit" startIcon={<LocalShippingIcon/>} sx={{ mx: 2 }}>
+                    Delivery
                   </Button>
                 </Box>
               )}

@@ -1,4 +1,4 @@
-import React,{useEffect} from 'react';
+import React,{useEffect, useState} from 'react';
 import { createBrowserRouter , RouterProvider } from 'react-router-dom';
 import RootLayout from './pages/RootLayout';
 import Homepage from './pages/Homepage';
@@ -16,22 +16,17 @@ import CheckoutPage from './pages/CheckoutPage';
 import Live from './pages/Live';
 import { toast, ToastContainer } from 'react-toastify';
 import About from './pages/About';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import {store,persistor} from './redux/store/store'
 import { PersistGate } from 'redux-persist/integration/react'
 import { io } from 'socket.io-client';
-
-const socket = io('http://localhost:4000');
+import jwtDecode from 'jwt-decode';
+import { CART } from './redux/Constants';
+import Cart from './pages/Cart';
+import Delivery from './Seller/pages/Delivery';
+const socket = io('http://localhost:4000/abc');
 
 function App() {
-
-  useEffect(()=>{
-    socket.on("winning",(data)=>{
-      toast.success("SUCCESS")
-      console.log(data[1])
-    })
-  },[])
-
 
 
   const router= createBrowserRouter([
@@ -75,6 +70,10 @@ function App() {
         path:'/checkout',
         element: <CheckoutPage/>
       },
+      {
+        path:'/cart',
+        element: <Cart/>
+      },
       ]
     },
 
@@ -98,6 +97,10 @@ function App() {
           path:'/seller/pages/MyProducts',
           element:<MyProducts/>
         },
+        {
+          path:'/seller/pages/delivery',
+          element:<Delivery/>
+        },
       ]
     }
   ])
@@ -107,7 +110,6 @@ function App() {
     <div>
         <RouterProvider router={router} />
         <ToastContainer/>
-        
     </div>
     </PersistGate>
     </Provider>
