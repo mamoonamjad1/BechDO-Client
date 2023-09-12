@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { styled, alpha, useTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -10,9 +10,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import { Button, Badge } from "@mui/material";
+import { Button, Badge, Hidden } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
 import { useNavigate } from "react-router";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
@@ -21,14 +21,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { SetUser } from "../../redux/actions/userAuth";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
-import PaymentsIcon from '@mui/icons-material/Payments';
+import PaymentsIcon from "@mui/icons-material/Payments";
 import PaidIcon from "@mui/icons-material/Paid";
 import { io } from "socket.io-client";
 import jwtDecode from "jwt-decode";
 import { CART, NOTIFICATIONS } from "../../redux/Constants";
 import { toast } from "react-toastify";
 import { SetOrderCount } from "../../redux/actions/order";
-import { SetNotificationCount } from '../../redux/actions/notification'; // Update the path if needed
+import { SetNotificationCount } from "../../redux/actions/notification"; // Update the path if needed
 
 const socket = io("http://localhost:4000/win");
 
@@ -90,9 +90,7 @@ const NavBar = () => {
   const notificationCount = useSelector(
     (state) => state.notificationReducer.notificationCount
   );
-  const orderCount = useSelector(
-    (state) => state.orderReducer.orderCount
-  );
+  const orderCount = useSelector((state) => state.orderReducer.orderCount);
   console.log("NNNNNNN", notificationCount);
   const navigate = useNavigate();
   const handleProfileMenuOpen = (event) => {
@@ -117,18 +115,14 @@ const NavBar = () => {
     setOpen(true);
   };
   const handlePaidIconClick = () => {
-    if(token){
-      navigate('/cart')
-    }
-    else{
-      navigate('/login')
+    if (token) {
+      navigate("/cart");
+    } else {
+      navigate("/login");
     }
   };
 
-
-
   useEffect(() => {
-    
     socket.emit("join", { userId: `${decodedUser.userId}` }, (error) => {
       if (error) console.log("ERROR: ", error);
       console.log("JOINED");
@@ -137,28 +131,8 @@ const NavBar = () => {
     socket.on("message", (data) => {
       console.log("RECEIEVE MESSAGE", data);
       toast.success(`Congratulations on winning the bid for ${data.name} `);
-      dispatchRedux(SetOrderCount(orderCount + 1))
+      dispatchRedux(SetOrderCount(orderCount + 1));
     });
-
-    // // Fetch orders when the component mounts
-    // const fetchOrders = async () => {
-    //   try {
-    //     // Fetch orders from the backend here using an API call
-    //     const response = await fetch(`http://localhost:4000/order/get/${decodedUser.userId}`); // Replace with your API endpoint
-    //     if (response.ok) {
-    //       const data = await response.json();
-    //       setOrders(data.orders);
-    //     } else {
-    //       console.error("Failed to fetch orders");
-    //     }
-    //   } catch (error) {
-    //     console.error(error);
-    //   }
-    // };
-
-    // if (token) {
-    //   fetchOrders();
-    // }
   }, [token]);
 
   const menuId = "primary-search-account-menu";
@@ -199,11 +173,11 @@ const NavBar = () => {
               }}
               onClick={() => {
                 localStorage.removeItem("buyerToken");
-                dispatchRedux(SetOrderCount(0))
-                dispatchRedux(SetNotificationCount(0))
+                dispatchRedux(SetOrderCount(0));
+                dispatchRedux(SetNotificationCount(0));
                 dispatchRedux(
                   SetUser({
-                    userId:"",
+                    userId: "",
                     firstName: "",
                     lastName: "",
                     email: "",
@@ -293,22 +267,44 @@ const NavBar = () => {
               <Typography variant="h6">BechDO</Typography>
             </NavLink>
           </div>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ "aria-label": "search" }}
-            />
-          </Search>
+          <Hidden smDown>
+            <Search>
+              <SearchIconWrapper>
+                <SearchIcon />
+              </SearchIconWrapper>
+              <StyledInputBase
+                placeholder="Search…"
+                inputProps={{ "aria-label": "search" }}
+              />
+            </Search>
+          </Hidden>
+          <Hidden mdUp>
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Search>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase
+                  placeholder="Search…"
+                  inputProps={{ "aria-label": "search" }}
+                />
+              </Search>
+            </div>
+          </Hidden>
           <div>
             <IconButton
               edge="end"
               aria-haspopup="true"
               onClick={handleNotifications}
               color="inherit"
-              sx={{mr:1}}
+              sx={{ mr: 1 }}
             >
               <Badge badgeContent={notificationCount} color="warning">
                 <NotificationsActiveIcon
@@ -322,7 +318,7 @@ const NavBar = () => {
               aria-haspopup="true"
               onClick={handlePaidIconClick}
               color="inherit"
-              sx={{mr:0.5}}
+              sx={{ mr: 0.5 }}
             >
               <Badge badgeContent={orderCount} color="error">
                 <ShoppingCartIcon fontSize="md" />
@@ -340,7 +336,6 @@ const NavBar = () => {
         </Toolbar>
       </AppBar>
       {renderMenu}
-      {/* New bar */}
     </Box>
   );
 };

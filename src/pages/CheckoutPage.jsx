@@ -78,20 +78,29 @@ const CheckoutPage = () => {
   
   };
 
-
-  const handleDialogOpen = () => {
-    //setOpen(true);
-    console.log(formData)
-    axios.post(`http://localhost:4000/order//address/${user.userId}`, formData)
-    .then((res)=>{
-      console.log("Order:",res)
-    })
-    .catch((err)=>{
-      console.log(err)
-    })
-
-
+  const handlePayment = async () => {
+    try {
+      const response = await axios.post(`http://localhost:4000/payment/make`, {
+        paymentMethodType: "card",
+        currency: "usd"
+      });
+      console.log("Response:", response);
+      const data = response.data; // Assuming 'data' contains the clientSecret
+  
+      const stripe = window.Stripe('YOUR_STRIPE_PUBLIC_KEY'); // Replace with your actual Stripe public key
+      const result = await stripe.confirmCardPayment(data.clientSecret);
+  
+      if (result.error) {
+        console.error('Payment failed:', result.error.message);
+      } else {
+        console.log('Payment succeeded:', result.paymentIntent.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
+  
+  
 
   const handleDialogClose = () => {
     setOpen(false);
@@ -258,7 +267,7 @@ const CheckoutPage = () => {
                   variant="contained"
                   color="primary" // Use the primary color for orange
                   style={{ marginTop: '1rem' }}
-                  onClick={handleDialogOpen}
+                  onClick={handlePayment}
                 >
                   Checkout
                 </Button>
