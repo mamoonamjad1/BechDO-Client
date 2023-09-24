@@ -24,10 +24,11 @@ import jwtDecode from 'jwt-decode';
 import { CART } from './redux/Constants';
 import Cart from './pages/Cart';
 import Delivery from './Seller/pages/Delivery';
+import axios from 'axios';
 const socket = io('http://localhost:4000/abc');
 
-function App() {
 
+function App() {
 
   const router= createBrowserRouter([
     {

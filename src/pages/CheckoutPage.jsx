@@ -1,4 +1,6 @@
 import React,{useEffect} from 'react';
+import CheckoutForm from './CheckoutForm';
+import "../assets/style.css"
 import {
   Container,
   Paper,
@@ -19,6 +21,10 @@ import {
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import axios from 'axios';
  import { useDispatch, useSelector } from 'react-redux';
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+const stripePromise = loadStripe('pk_test_51NsLBADMF5rirMzQKNxD8ba9MwIbTqLWiWSeeV3oXx9AqPfDYW0pks3drI8Rj4ASoraNd67H7AKcEJEmYcgo74Px00qYmADtbE');
+
 const theme = createMuiTheme({
   palette: {
     primary: {
@@ -78,27 +84,27 @@ const CheckoutPage = () => {
   
   };
 
-  const handlePayment = async () => {
-    try {
-      const response = await axios.post(`http://localhost:4000/payment/make`, {
-        paymentMethodType: "card",
-        currency: "usd"
-      });
-      console.log("Response:", response);
-      const data = response.data; // Assuming 'data' contains the clientSecret
+  // const handlePayment = async () => {
+  //   try {
+  //     const response = await axios.post(`http://localhost:4000/payment/make`, {
+  //       paymentMethodType: "card",
+  //       currency: "usd"
+  //     });
+  //     console.log("Response:", response);
+  //     const data = response.data; // Assuming 'data' contains the clientSecret
   
-      const stripe = window.Stripe('YOUR_STRIPE_PUBLIC_KEY'); // Replace with your actual Stripe public key
-      const result = await stripe.confirmCardPayment(data.clientSecret);
+  //     const stripe = window.Stripe('YOUR_STRIPE_PUBLIC_KEY'); // Replace with your actual Stripe public key
+  //     const result = await stripe.confirmCardPayment(data.clientSecret);
   
-      if (result.error) {
-        console.error('Payment failed:', result.error.message);
-      } else {
-        console.log('Payment succeeded:', result.paymentIntent.id);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  //     if (result.error) {
+  //       console.error('Payment failed:', result.error.message);
+  //     } else {
+  //       console.log('Payment succeeded:', result.paymentIntent.id);
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
   
   
 
@@ -203,66 +209,7 @@ const CheckoutPage = () => {
                     onChange={handleChange}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Payment Options
-                  </Typography>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={payOnline}
-                        onChange={handlePayOnlineChange}
-                        color="primary"
-                      />
-                    }
-                    label="Pay Online"
-                  />
-                  {payOnline && (
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <TextField
-                          name="cardNumber"
-                          label="Card Number"
-                          variant="outlined"
-                          fullWidth
-                          value={cardDetails.cardNumber}
-                          onChange={handleCardDetailsChange}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          name="cardHolderName"
-                          label="Card Holder Name"
-                          variant="outlined"
-                          fullWidth
-                          value={cardDetails.cardHolderName}
-                          onChange={handleCardDetailsChange}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          name="expiryDate"
-                          label="Expiry Date"
-                          variant="outlined"
-                          fullWidth
-                          value={cardDetails.expiryDate}
-                          onChange={handleCardDetailsChange}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          name="cvv"
-                          label="CVV"
-                          variant="outlined"
-                          fullWidth
-                          value={cardDetails.cvv}
-                          onChange={handleCardDetailsChange}
-                        />
-                      </Grid>
-                    </Grid>
-                  )}
-                </Grid>
-                <Button
+                {/* <Button
                   fullWidth
                   variant="contained"
                   color="primary" // Use the primary color for orange
@@ -270,7 +217,7 @@ const CheckoutPage = () => {
                   onClick={handlePayment}
                 >
                   Checkout
-                </Button>
+                </Button> */}
               </Grid>
             </Paper>
           </Grid>
@@ -303,10 +250,13 @@ const CheckoutPage = () => {
                 Total: ${totalAmount.toFixed(2)}
               </Typography>
             </Paper>
+                <Elements stripe={stripePromise} address={formData} amount={totalAmount}>
+            <CheckoutForm />
+               </Elements>
           </Grid>
         </Grid>
       </Container>
-      <Dialog open={open} onClose={handleDialogClose} sx={{textAlign:'center'}} >
+      {/* <Dialog open={open} onClose={handleDialogClose} sx={{textAlign:'center'}} >
         <DialogTitle sx={{backgroundColor:'#0C134F' , color:'white'}}>Confirm Your Order</DialogTitle>
         <DialogContent sx={{mt:2}}>
           <DialogContentText>Please Confirm Your Order</DialogContentText>
@@ -321,7 +271,7 @@ const CheckoutPage = () => {
             Ignore
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </ThemeProvider>
   );
 };
