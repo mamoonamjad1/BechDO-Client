@@ -313,6 +313,7 @@ const NavBar = () => {
                 />
               </Badge>
             </IconButton>
+            
             <IconButton
               edge="end"
               aria-haspopup="true"

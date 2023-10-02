@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { ElementsConsumer, CardElement } from "@stripe/react-stripe-js";
 import axios from "axios";
 import CardSection from "./CardSection";
-import { useSelector } from "react-redux";
-
+import { useDispatch, useSelector } from "react-redux";
+import { SetOrderCount } from "../redux/actions/order";
 
 function CheckoutForm(props) {
   const [stripe, setStripe] = useState(null);
@@ -11,7 +11,7 @@ function CheckoutForm(props) {
   const [formData,setFormData] = useState(null);
   const [amount,setAmount] = useState(null);
   const user= useSelector((state)=>state.authReducer)
-
+  const dispatchRedux = useDispatch();
   useEffect(() => {
     const { stripe, elements , formData ,amount } = props;
     setStripe(stripe);
@@ -36,7 +36,10 @@ function CheckoutForm(props) {
       axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:amount})
       .then((res)=>{
         axios.post(`http://localhost:4000/order/address/${user.userId}`, formData)
-        .then((res)=>{  console.log("Hello:",res)    
+        .then((res)=>{  
+          console.log("Hello:",res)
+          dispatchRedux(SetOrderCount('0'))
+            
       })})
       }
   };
