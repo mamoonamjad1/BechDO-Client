@@ -50,12 +50,12 @@ function CheckoutForm(props) {
       console.log(result.error.message);
     } else {
       console.log("Token",result.token);
-      axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:totalAmount})
+      axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:10})
       .then((res)=>{
         axios.post(`http://localhost:4000/order/address/${user.userId}`, formData)
         .then((res)=>{  
           console.log("Hello:",res)
-          toast.sucess("Order Placed Successfully");
+          toast.success("Order Placed Successfully");
           dispatchRedux(SetOrderCount('0'))
           navigate("/")
       })})

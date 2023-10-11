@@ -32,7 +32,7 @@ const NotificationDrawer = ({ open, handleNotificationsClose }) => {
         return prevQueue;
       });
 
-      dispatchRedux(SetNotificationCount(notificationCount + 0.25));
+      dispatchRedux(SetNotificationCount(notificationCount + 0.5));
     };
 
     socket.on('sendNotification', handleNotification);
