@@ -4,22 +4,39 @@ import axios from "axios";
 import CardSection from "./CardSection";
 import { useDispatch, useSelector } from "react-redux";
 import { SetOrderCount } from "../redux/actions/order";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function CheckoutForm(props) {
+  console.log("PROPPPS",props.amount)
   const [stripe, setStripe] = useState(null);
+  const [cartItems, setCartItems] = React.useState([]);
   const [elements, setElements] = useState(null);
   const [formData,setFormData] = useState(null);
   const [amount,setAmount] = useState(null);
   const user= useSelector((state)=>state.authReducer)
+  const navigate = useNavigate();
   const dispatchRedux = useDispatch();
   useEffect(() => {
-    const { stripe, elements , formData ,amount } = props;
+    const { stripe, elements , formData  } = props;
     setStripe(stripe);
     setElements(elements);
     setFormData(formData);
-    setAmount(amount);
   }, [props]);
 
+  useEffect(()=>{
+    axios.get(`http://localhost:4000/order/get/${user.userId}`)
+    .then((res)=>{
+    console.log("CART:",res)
+    setCartItems(res.data)
+
+    })
+    },[])
+  // Calculate the total amount
+  const totalAmount = cartItems.reduce((total, item) => {
+    const currentPrice = item.products.currentPrice.$numberDecimal.toString(); 
+    return total + parseFloat(currentPrice); // Parse and add the value
+  }, 0);
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -33,13 +50,14 @@ function CheckoutForm(props) {
       console.log(result.error.message);
     } else {
       console.log("Token",result.token);
-      axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:amount})
+      axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:totalAmount})
       .then((res)=>{
         axios.post(`http://localhost:4000/order/address/${user.userId}`, formData)
         .then((res)=>{  
           console.log("Hello:",res)
+          toast.sucess("Order Placed Successfully");
           dispatchRedux(SetOrderCount('0'))
-            
+          navigate("/")
       })})
       }
   };

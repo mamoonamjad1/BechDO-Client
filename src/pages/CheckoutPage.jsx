@@ -250,8 +250,8 @@ const CheckoutPage = () => {
                 Total: ${totalAmount.toFixed(2)}
               </Typography>
             </Paper>
-                <Elements stripe={stripePromise} address={formData} amount={totalAmount}>
-            <CheckoutForm />
+                <Elements stripe={stripePromise} >
+                  <CheckoutForm />
                </Elements>
           </Grid>
         </Grid>
