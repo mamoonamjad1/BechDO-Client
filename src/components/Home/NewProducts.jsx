@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { Typography, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Box, Typography } from '@mui/material';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import Carousel from 'react-material-ui-carousel';
 
 const NewProducts = () => {
   const containerStyle = {
     display: 'flex',
     alignItems: 'center',
     marginBottom: '16px',
+    marginTop: '16px',
     padding: '10px',
   };
 
@@ -16,264 +20,125 @@ const NewProducts = () => {
   };
 
   const [isHovered, setIsHovered] = useState(false);
+  const [product,setProduct] = useState([]);
+  const [loading, setLoading] = useState(true); // Add loading state
+
+  useEffect(() => {
+    axios.get("http://localhost:4000/product/upcoming")
+      .then((res) => {
+        console.log("RES", res);
+        setProduct(res.data);
+        setLoading(false); // Set loading to false when data is fetched
+      })
+      .catch(() => {
+        toast.error("Couldn't Fetch Products");
+        setLoading(false); // Set loading to false on error
+      });
+  }, []);
+
+  const productChunks = [];
+  for (let i = 0; i < product.length; i += 4) {
+    productChunks.push(product.slice(i, i + 4));
+  }
 
   return (
-    <>
-      <div>
-        <Link href="#" style={{ textDecoration: 'none', color: 'inherit', paddingTop: '2px' }}>
-          <Box style={containerStyle}>
-            <Typography variant='h5'>
-              Latest Products
-            </Typography>
-            <ArrowRightAltIcon style={iconStyle} />
-          </Box>
-        </Link>
+    <div sx={{ backgroundColor: 'grey' }}>
+      <Box style={containerStyle}>
+        <Typography variant='h5'>Upcoming Auctions</Typography>
+        <ArrowRightAltIcon style={iconStyle} />
+      </Box>
 
-        <Box
-          display='flex'
-          flexDirection={{ xs: 'column', md: 'row' }} // Set flex direction to column for xs screen and row for md screen
-          alignItems={{ xs: 'center', md: 'flex-start' }} // Align items in the center for xs screen and flex-start for md screen
-          justifyContent='space-around'
-          sx={{ p: 4 }}
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <Carousel
+          autoPlay={true}
+          timer={5000}
+          indicators={false}
+          animation='slide'
+          navButtonsAlwaysVisible
         >
-          <Link href="#" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Box
-                style={{
-                  width: '150px', // Adjust the width as needed
-                  height: '150px', // Adjust the height as needed
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  backgroundColor: 'orange',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                  transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s',
-                  '&:hover': {
-                    transform: 'scale(1.1)',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.3)',
-                    backgroundColor: 'darkorange',
-                  },
-                }}
-              >
-                <img
-                  src="../../images/phone.png"
-                  alt="phone"
-                  style={{
-                    maxWidth: '60%', // Adjust the max width as needed
-                    maxHeight: '60%', // Adjust the max height as needed
-                  }}
-                />
-                <Typography
-                  variant="h6"
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    color: 'inherit',
-                    opacity: 0,
-                    transition: 'opacity 0.3s, font-size 0.3s',
-                    fontSize: '16px',
-                    '&:hover': {
-                      opacity: 1,
-                      color: 'white',
-                      fontSize: '14px',
-                    },
-                  }}
+          {productChunks.map((chunk, index) => (
+            <Box
+              key={index}
+              display='flex'
+              justifyContent='space-around'
+              sx={{
+                p: 4,
+                flexDirection: { xs: 'column', md: 'row', lg: 'row', xl: 'row' },
+                alignItems: { xs: 'center', md: 'center', lg: 'center', xl: 'center' },
+                textAlign: 'center',
+              }}
+            >
+              {chunk.map(product => (
+                <Link
+                  key={product._id}
+                  //to={`/categories/${category._id}`}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
                 >
-                  Explore->
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="h6" sx={{ textAlign: 'center' }}>
-                  Telephone
-                </Typography>
-              </Box>
+                  <Box>
+                    <Box
+                      style={{
+                        width: '150px',
+                        height: '150px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        backgroundColor: 'orange',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        position: 'relative',
+                        transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s',
+                        '&:hover': {
+                          transform: 'scale(1.1)',
+                          boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.3)',
+                          backgroundColor: 'darkorange',
+                        },
+                      }}
+                    >
+                      <img
+                        src={`http://localhost:4000/pictures/${product.images[0]}`}
+                        alt={product.name}
+                        style={{
+                          maxWidth: '60%',
+                          maxHeight: '60%',
+                        }}
+                      />
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          textAlign: 'center',
+                          color: 'inherit',
+                          opacity: 0,
+                          transition: 'opacity 0.3s, font-size 0.3s',
+                          fontSize: '16px',
+                          '&:hover': {
+                            opacity: 1,
+                            color: 'white',
+                            fontSize: '14px',
+                          },
+                        }}
+                      >
+                        Explore->
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="h6" sx={{ textAlign: 'center' }}>
+                        {product.name}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Link>
+              ))}
             </Box>
-          </Link>
-
-          <Link href="#" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Box
-                style={{
-                  width: '150px', // Adjust the width as needed
-                  height: '150px', // Adjust the height as needed
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  backgroundColor: 'orange',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                  transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s',
-                  '&:hover': {
-                    transform: 'scale(1.1)',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.3)',
-                    backgroundColor: 'darkorange',
-                  },
-                }}
-              >
-                <img
-                  src="../../images/shirt.png"
-                  alt="fashion"
-                  style={{
-                    maxWidth: '70%', // Adjust the max width as needed
-                    maxHeight: '70%', // Adjust the max height as needed
-                  }}
-                />
-                <Typography
-                  variant="h6"
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    color: 'inherit',
-                    opacity: 0,
-                    transition: 'opacity 0.3s, font-size 0.3s',
-                    fontSize: '16px',
-                    '&:hover': {
-                      opacity: 1,
-                      color: 'white',
-                      fontSize: '14px',
-                    },
-                  }}
-                >
-                  Explore->
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="h6" sx={{ textAlign: 'center' }}>
-                  Men T-Shirt
-                </Typography>
-              </Box>
-            </Box>
-          </Link>
-
-          <Link href="#" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Box
-                style={{
-                  width: '150px', // Adjust the width as needed
-                  height: '150px', // Adjust the height as needed
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  backgroundColor: 'orange',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                  transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s',
-                  '&:hover': {
-                    transform: 'scale(1.1)',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.3)',
-                    backgroundColor: 'darkorange',
-                  },
-                }}
-              >
-                <img
-                  src="../../images/spoon.png"
-                  alt="utensils"
-                  style={{
-                    maxWidth: '70%', // Adjust the max width as needed
-                    maxHeight: '70%', // Adjust the max height as needed
-                  }}
-                />
-                <Typography
-                  variant='h6'
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    color: 'inherit',
-                    opacity: 0,
-                    transition: 'opacity 0.3s, font-size 0.3s',
-                    fontSize: '16px',
-                    '&:hover': {
-                      opacity: 1,
-                      color: 'white',
-                      fontSize: '14px',
-                    },
-                  }}
-                >
-                  Explore->
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="h6" sx={{ textAlign: 'center' }}>
-                  Kitchen Spoon Set
-                </Typography>
-              </Box>
-            </Box>
-          </Link>
-
-          <Link href="#" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Box
-                style={{
-                  width: '150px', // Adjust the width as needed
-                  height: '150px', // Adjust the height as needed
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  backgroundColor: 'orange',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                  transition: 'transform 0.3s, box-shadow 0.3s, background-color 0.3s',
-                  '&:hover': {
-                    transform: 'scale(1.1)',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.3)',
-                    backgroundColor: 'darkorange',
-                  },
-                }}
-              >
-                <img
-                  src="../../images/masala.png"
-                  alt="spices"
-                  style={{
-                    maxWidth: '70%', // Adjust the max width as needed
-                    maxHeight: '70%', // Adjust the max height as needed
-                  }}
-                />
-                <Typography
-                  variant="h6"
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                    color: 'inherit',
-                    opacity: 0,
-                    transition: 'opacity 0.3s, font-size 0.3s',
-                    fontSize: '16px',
-                    '&:hover': {
-                      opacity: 1,
-                      color: 'white',
-                      fontSize: '14px',
-                    },
-                  }}
-                >
-                  Explore->
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="h6" sx={{ textAlign: 'center' }}>
-                  Organic Masala
-                </Typography>
-              </Box>
-            </Box>
-          </Link>
-        </Box>
-      </div>
-    </>
+          ))}
+        </Carousel>
+      )}
+    </div>
   );
 };
 

@@ -34,7 +34,7 @@ function SellerRegister() {
     const firstName = data.get("firstName");
     const lastName = data.get("lastName");
     const address = data.get("address");
-    const phoneNumber = data.get("phoneNumber"); // Make sure the name attribute matches the field name
+    const phoneNumber = data.get("phoneNumber"); 
     const email = data.get("email");
     const password = data.get("password");
     const confirmPassword = data.get("confirmPassword");
@@ -59,7 +59,7 @@ function SellerRegister() {
           "http://localhost:4000/seller/register",
           formData
         );
-
+        window.open(response.data)
         console.log("Successful");
         setIsLoading(false);
         toast.success("Welcome Onboard");

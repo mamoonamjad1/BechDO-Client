@@ -146,6 +146,7 @@ setCartItems(res.data)
               color="primary" // Use the primary color for orange
               style={{ marginTop: '1rem' }}
               onClick={handleDialogOpen}
+              disabled={cartItems.length === 0}
             >
               Proceed
             </Button>
