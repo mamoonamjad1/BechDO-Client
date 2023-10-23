@@ -63,7 +63,7 @@ const NavBar = () => {
             </ListItemIcon>
             <ListItemText primary="My Products" />
           </ListItem>
-          <ListItem button component={NavLink} to="/seller/pages/dashboard" exact activeClassName="active" onClick={toggleMobileMenu}>
+          <ListItem button component={NavLink} to="/seller/pages/delivery" exact activeClassName="active" onClick={toggleMobileMenu}>
             <ListItemIcon>
               <LocalShippingIcon />
             </ListItemIcon>

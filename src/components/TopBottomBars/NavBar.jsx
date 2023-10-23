@@ -11,24 +11,22 @@ import Menu from "@mui/material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
-import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import { Button, Badge, Hidden } from "@mui/material";
+import { Badge, Hidden } from "@mui/material";
 import { Link, NavLink } from "react-router-dom";
 import { useNavigate } from "react-router";
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import NotificationDrawer from "../Home/Notifications";
 import { useDispatch, useSelector } from "react-redux";
 import { SetUser } from "../../redux/actions/userAuth";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import PaidIcon from "@mui/icons-material/Paid";
 import { io } from "socket.io-client";
 import jwtDecode from "jwt-decode";
 import { CART, NOTIFICATIONS } from "../../redux/Constants";
 import { toast } from "react-toastify";
 import { SetOrderCount } from "../../redux/actions/order";
-import { SetNotificationCount } from "../../redux/actions/notification"; // Update the path if needed
+import { SetNotificationCount } from "../../redux/actions/notification";
+import axios from "axios";
+import Button from "@mui/material/Button";
 
 const socket = io("http://localhost:4000/win");
 
@@ -62,6 +60,7 @@ const SearchIconWrapper = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  left: 0, // Adjusted left position
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -79,28 +78,77 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const NavBar = () => {
   const theme = useTheme();
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [open, setOpen] = React.useState(false);
-  const [openNotifications, setOpenNotifications] = React.useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElSearch, setAnchorElSearch] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [openSearch, setOpenSearch] = useState(false);
+  const [openNotifications, setOpenNotifications] = useState(false);
   const decodedUser = useSelector((state) => state.authReducer);
   const dispatchRedux = useDispatch();
   const [showOrders, setShowOrders] = useState(false);
   const token = localStorage.getItem("buyerToken");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = () => {
+    setLoading(true);
+    axios
+      .get("http://localhost:4000/product/search", {
+        params: { searchQuery },
+      })
+      .then((res) => {
+        setSearchResults(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  };
+
+  const renderSearchResults = () => {
+    if (loading) {
+      return <MenuItem disabled>Loading...</MenuItem>;
+    } else if (searchResults === null) {
+      return null;
+    } else if (searchResults.length === 0) {
+      return <MenuItem disabled>No results found</MenuItem>;
+    } else {
+      return searchResults.map((result) => (
+        <MenuItem
+          key={result.id}
+          onClick={handleSearchResultClick(result)}
+          sx={{borderBottom:'1px solid black'}}
+        >
+          {result.name}
+        </MenuItem>
+      ));
+    }
+  };
+
+  const handleSearchResultClick = (result) => () => {
+    console.log("Clicked on result: ", result);
+    navigate(`/product/${result._id}`);
+    setSearchResults(null);
+  };
 
   const notificationCount = useSelector(
     (state) => state.notificationReducer.notificationCount
   );
   const orderCount = useSelector((state) => state.orderReducer.orderCount);
-  console.log("NNNNNNN", notificationCount);
   const navigate = useNavigate();
+
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
     setOpen(true);
   };
+
   const handleNotifications = (event) => {
     event.preventDefault();
     setOpenNotifications(true);
   };
+
   const handleNotificationsClose = (event) => {
     event.preventDefault();
     setOpenNotifications(false);
@@ -111,9 +159,14 @@ const NavBar = () => {
     setOpen(false);
   };
 
-  const handleSearchIconClick = () => {
-    setOpen(true);
+  const handleSearchEventClose = () => {
+    setOpenSearch(false);
   };
+
+  const handleSearchIconClick = () => {
+    setOpenSearch(true);
+  };
+
   const handlePaidIconClick = () => {
     if (token) {
       navigate("/cart");
@@ -129,13 +182,14 @@ const NavBar = () => {
     });
 
     socket.on("message", (data) => {
-      console.log("RECEIEVE MESSAGE", data);
+      console.log("RECEIVE MESSAGE", data);
       toast.success(`Congratulations on winning the bid for ${data.name} `);
       dispatchRedux(SetOrderCount(orderCount + 1));
     });
   }, [token]);
 
   const menuId = "primary-search-account-menu";
+
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
@@ -191,24 +245,24 @@ const NavBar = () => {
         ) : (
           <Box
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              alignItems:"center",
             }}
+            display='flex'
+            flexDirection="column"
           >
             <Button
               variant="contained"
               sx={{
                 backgroundColor: "#0C134F",
                 color: "white",
-                minWidth: "50vh", // Set a minimum width for the button
-                width: "100%", // Occupy available width
+                minWidth: "50vh",
+                width: "100%",
                 "&:hover": {
                   backgroundColor: "#071952",
                   color: "white",
                 },
                 [theme.breakpoints.up("md")]: {
-                  width: "auto", // Reset to 'auto' width on larger screens
+                  width: "auto",
                 },
               }}
               onClick={() => {
@@ -270,33 +324,42 @@ const NavBar = () => {
           <Hidden smDown>
             <Search>
               <SearchIconWrapper>
-                <SearchIcon />
+                <SearchIcon onClick={handleSearchIconClick} />
               </SearchIconWrapper>
               <StyledInputBase
                 placeholder="Search…"
                 inputProps={{ "aria-label": "search" }}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                    setAnchorElSearch(e.currentTarget);
+                    setOpenSearch(true);
+                  }
+                }}
               />
+              {openSearch && (
+                <Menu
+                  anchorEl={anchorElSearch}
+                  open={openSearch}
+                  onClose={handleSearchEventClose}
+                  PaperProps={{
+                    sx: {
+                      width: {
+                        xs: '100%', // Full width for extra-small screens
+                        md: '48%',   // 50% width for medium screens
+                        lg: '57.5%', // 57.5% width for large screens
+                      },
+                      mt: 0.5,
+                      borderRadius: "10px",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                    },
+                  }}
+                >
+                  {renderSearchResults()}
+                </Menu>
+              )}
             </Search>
-          </Hidden>
-          <Hidden mdUp>
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Search>
-                <SearchIconWrapper>
-                  <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase
-                  placeholder="Search…"
-                  inputProps={{ "aria-label": "search" }}
-                />
-              </Search>
-            </div>
           </Hidden>
           <div>
             <IconButton
@@ -307,13 +370,9 @@ const NavBar = () => {
               sx={{ mr: 1 }}
             >
               <Badge badgeContent={notificationCount} color="warning">
-                <NotificationsActiveIcon
-                  fontSize="md"
-                  onClick={() => console.log("Clicked")}
-                />
+                <NotificationsActiveIcon fontSize="md" />
               </Badge>
             </IconButton>
-            
             <IconButton
               edge="end"
               aria-haspopup="true"

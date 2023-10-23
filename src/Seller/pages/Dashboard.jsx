@@ -6,7 +6,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import jwtDecode from 'jwt-decode';
-import { Box, Card, CardActions, CardContent, CardMedia, Button, IconButton, Dialog, Slide,DialogTitle, DialogContent, DialogContentText, DialogActions,TextField,InputAdornment,MenuItem } from '@mui/material';
+import { Box, Card, CardActions, CardContent, CardMedia, Button, IconButton, Dialog, Slide,DialogTitle, DialogContent, DialogContentText, DialogActions,TextField,InputAdornment,MenuItem, Tooltip } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -57,7 +57,7 @@ export default function DashBoard() {
       .catch(() => {
         toast.error("Couldn't Fetch Products");
       });
-  }, [data]);
+  }, []);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -108,7 +108,7 @@ export default function DashBoard() {
         axios
           .get(`http://localhost:4000/product/total/earning/${decode._id}`)
           .then((res) => {
-            console.log("Dash Response", res.data);
+            console.log("Earning: ", res.data);
             setAmount(res.data)
           });
       } catch (error) {
@@ -183,7 +183,22 @@ const handleEdit = () => {
     });
 };
 
-
+const handlePayment = () => {
+  axios.post(`http://localhost:4000/payment/seller-payment/${decode._id}`,{amount:10})
+  .then((res)=>{
+    console.log("Balance:",res)
+      if(res.data === "Success"){
+        axios.post(`http://localhost:4000/order/update-checkout/${decode._id}`)
+        .then((res)=>{
+          toast.success("Payment Successful")
+        })
+      }else{
+        window.open(res.data)
+      }
+  }).catch((err)=>{
+    console.log(err)
+  })
+}
 
 
   return (
@@ -249,9 +264,13 @@ const handleEdit = () => {
             <Typography variant="h4">
               ${amount.totalEarnings} {/* Display the total currentPrice */}
             </Typography>
-            <Button fullWidth variant='contained' sx={{backgroundColor:'#0C134F', '&:hover':{backgroundColor:'lightblue' , color:'black'}}}>
+            <Tooltip title="You will be charged 5% of the amount" arrow>
+            <Button fullWidth variant='contained' sx={{backgroundColor:'#0C134F', '&:hover':{backgroundColor:'lightblue' , color:'black'}}}
+            onClick={handlePayment}
+            disabled={amount.totalEarnings === 0}>
                 Cash Out
             </Button>
+            </Tooltip>
             {/* Add any additional information here */}
           </Paper>
         </Grid>

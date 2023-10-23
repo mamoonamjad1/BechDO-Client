@@ -37,6 +37,7 @@ function CheckoutForm(props) {
     const currentPrice = item.products.currentPrice.$numberDecimal.toString(); 
     return total + parseFloat(currentPrice); // Parse and add the value
   }, 0);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -50,7 +51,7 @@ function CheckoutForm(props) {
       console.log(result.error.message);
     } else {
       console.log("Token",result.token);
-      axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:10})
+      axios.post(`http://localhost:4000/payment/make`, {tokenId:result.token.id, price:totalAmount})
       .then((res)=>{
         axios.post(`http://localhost:4000/order/address/${user.userId}`, formData)
         .then((res)=>{  

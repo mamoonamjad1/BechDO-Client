@@ -87,6 +87,7 @@ const Delivery = () => {
     handleClose();
   };
 
+  
   const renderCards = () => {
     const startIndex = (page - 1) * PAGE_SIZE;
     const endIndex = startIndex + PAGE_SIZE;
@@ -168,9 +169,9 @@ const Delivery = () => {
       </Typography>
       <Typography variant="h6" gutterBottom sx={{ mt: 3, display: 'flex', alignItems: 'center', color:'red' }}>
   Deliveries To Make <ArrowRightAltIcon />
-  <Button variant='contained' onClick={() => { setOpenDialog(true) }}>
+  {/* <Button variant='contained' onClick={() => { setOpenDialog(true) }}>
     Download Excel for Deliveries
-  </Button>
+  </Button> */}
 </Typography>
 
       <Grid container spacing={2}>
@@ -193,7 +194,7 @@ const Delivery = () => {
           </Button>
         ))}
       </div>
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
+      {/* <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Generate Statement</DialogTitle>
         <DialogContent>
         DO YOU WANT TO DOWNLOAD DELIVERIES IN EXCEL FILE?
@@ -202,12 +203,12 @@ const Delivery = () => {
           <Button onClick={handleCloseDialog} color="warning" variant='contained'>
             Close
           </Button>
-          <Button color="success" variant='contained'>
+          <Button color="success" variant='contained' onClick={downloadDeliveries}>
             Download
           </Button>
           {/* Add other invoice actions here */}
-        </DialogActions>
-      </Dialog>
+        {/* </DialogActions>
+      </Dialog> */} 
     </Container>
   );
 };
