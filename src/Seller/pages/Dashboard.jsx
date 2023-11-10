@@ -184,13 +184,14 @@ const handleEdit = () => {
 };
 
 const handlePayment = () => {
-  axios.post(`http://localhost:4000/payment/seller-payment/${decode._id}`,{amount:10})
+  axios.post(`http://localhost:4000/payment/seller-payment/${decode._id}`,{amount:amount.totalEarnings})
   .then((res)=>{
     console.log("Balance:",res)
       if(res.data === "Success"){
         axios.post(`http://localhost:4000/order/update-checkout/${decode._id}`)
         .then((res)=>{
           toast.success("Payment Successful")
+          window.location.reload()
         })
       }else{
         window.open(res.data)

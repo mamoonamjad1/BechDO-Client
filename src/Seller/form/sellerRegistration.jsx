@@ -59,11 +59,11 @@ function SellerRegister() {
           "http://localhost:4000/seller/register",
           formData
         );
-        window.open(response.data)
+
         console.log("Successful");
         setIsLoading(false);
         toast.success("Welcome Onboard");
-        // navigate("/seller/sign-in");
+        navigate("/seller/sign-in");
       } catch (error) {
         console.log("Unsuccessful");
         setIsLoading(false);

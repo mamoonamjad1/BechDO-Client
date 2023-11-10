@@ -4,20 +4,23 @@ import Banner from './Banner';
 import picture from '../../assets/carousel/picture-1.png';
 import picture1 from '../../assets/carousel/picture-3.jpg';
 import picture2 from '../../assets/carousel/picture-2.jpg';
+import banner from '../../assets/carousel/banner.jpg';
 
 const items = [
   {
-    id: 1,
-    image: picture,
-  },
-  {
-    id: 2,
-    image: picture1,
-  },
+  id: 4,
+  image: banner,
+},
   {
     id: 3,
     image: picture2,
   },
+  {
+    id: 1,
+    image: picture,
+  },
+  
+
 ];
 
 const Images = () => {

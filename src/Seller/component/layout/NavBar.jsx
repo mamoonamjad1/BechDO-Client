@@ -104,7 +104,7 @@ const NavBar = () => {
       <AppBar position="sticky" sx={{ backgroundColor: "#0C134F" }}>
         <Toolbar>
           <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-            <Box display="flex" alignItems="center" onClick={()=>{navigate('/')}}>
+            <Box display="flex" alignItems="center" onClick={()=>{navigate('/seller/pages/dashboard')}}>
               <Typography variant="h6">
                 BECHDO
                 <Typography color="orange" component="span">

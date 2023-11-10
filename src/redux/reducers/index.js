@@ -5,6 +5,7 @@ import notificationReducer from './notificationReducer'
 import cartReducer from './cartReducer'
 import earningReducer from './earningReducer'
 import orderReducer from './orderReducer'
+import orderDetailReducer from './orderDetailReducer'
 
 const rootReducers = combineReducers({
     authReducer,
@@ -13,6 +14,7 @@ const rootReducers = combineReducers({
     cartReducer,
     earningReducer,
     orderReducer,
+    orderDetailReducer,
 
 })
 

@@ -50,7 +50,9 @@ const NewProducts = () => {
 
       {loading ? (
         <p>Loading...</p>
-      ) : (
+      ) :  product.length === 0 ? (
+        <Typography variant='body1' sx={{textAlign:'center'}}>No upcoming auctions</Typography>
+      ) :  (
         <Carousel
           autoPlay={true}
           timer={5000}

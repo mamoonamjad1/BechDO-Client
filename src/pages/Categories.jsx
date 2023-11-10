@@ -40,9 +40,9 @@ const Categories = () => {
 
   return (
     <>
-      <Grid container spacing={2} sx={{ mt: 2, mb: 2 }}>
+      <Grid container spacing={4} sx={{ mt: 2, mb: 2 }}>
         {visibleCategories.map((category) => (
-          <Grid key={category._id} item xs={4}>
+          <Grid key={category._id} item xs={6} sm={4} md={3} lg={2}>
             <Link to={`/categories/${category._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <ImageListItem>
                 <img
