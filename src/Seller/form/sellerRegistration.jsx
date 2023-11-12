@@ -20,6 +20,7 @@ function SellerRegister() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -34,42 +35,70 @@ function SellerRegister() {
     const firstName = data.get("firstName");
     const lastName = data.get("lastName");
     const address = data.get("address");
-    const phoneNumber = data.get("phoneNumber"); 
+    const phoneNumber = data.get("phoneNumber");
     const email = data.get("email");
     const password = data.get("password");
     const confirmPassword = data.get("confirmPassword");
 
-    if (password === confirmPassword) {
-      setIsLoading(true);
+    // Validate form fields
+    const errors = {};
+    if (!firstName) {
+      errors.firstName = "First Name is required";
+    }
+    if (!lastName) {
+      errors.lastName = "Last Name is required";
+    }
+    if (!address) {
+      errors.address = "Address is required";
+    }
+    if (!phoneNumber) {
+      errors.phoneNumber = "Phone Number is required";
+    }
+    if (!email) {
+      errors.email = "Email is required";
+    }
+    if (!password) {
+      errors.password = "Password is required";
+    }
+    if (!confirmPassword) {
+      errors.confirmPassword = "Confirm Password is required";
+    }
+    if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
 
-      try {
-        const formData = new FormData();
-        formData.append("firstName", firstName);
-        formData.append("lastName", lastName);
-        formData.append("address", address);
-        formData.append("phoneNumber", phoneNumber);
-        formData.append("email", email);
-        formData.append("password", password);
-        formData.append("confirmPassword", confirmPassword);
-        if (uploadedFile) {
-          formData.append("image", uploadedFile);
-        }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
-        const response = await axios.post(
-          "http://localhost:4000/seller/register",
-          formData
-        );
+    setIsLoading(true);
 
-        console.log("Successful");
-        setIsLoading(false);
-        toast.success("Welcome Onboard");
-        navigate("/seller/sign-in");
-      } catch (error) {
-        console.log("Unsuccessful");
-        setIsLoading(false);
+    try {
+      const formData = new FormData();
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("address", address);
+      formData.append("phoneNumber", phoneNumber);
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("confirmPassword", confirmPassword);
+      if (uploadedFile) {
+        formData.append("image", uploadedFile);
       }
-    } else {
-      console.log("Passwords do not match");
+
+      const response = await axios.post(
+        "http://localhost:4000/seller/register",
+        formData
+      );
+
+      console.log("Successful");
+      setIsLoading(false);
+      toast.success("Welcome Onboard");
+      navigate("/seller/sign-in");
+    } catch (error) {
+      console.log("Unsuccessful");
+      setIsLoading(false);
     }
   };
 
@@ -107,6 +136,8 @@ function SellerRegister() {
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  error={!!formErrors.firstName}
+                  helperText={formErrors.firstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -117,6 +148,8 @@ function SellerRegister() {
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
+                  error={!!formErrors.lastName}
+                  helperText={formErrors.lastName}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -126,6 +159,8 @@ function SellerRegister() {
                   id="address"
                   label="Address"
                   name="address"
+                  error={!!formErrors.address}
+                  helperText={formErrors.address}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -135,6 +170,8 @@ function SellerRegister() {
                   id="phoneNumber"
                   label="Phone Number"
                   name="phoneNumber"
+                  error={!!formErrors.phoneNumber}
+                  helperText={formErrors.phoneNumber}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -145,6 +182,8 @@ function SellerRegister() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  error={!!formErrors.email}
+                  helperText={formErrors.email}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -156,6 +195,8 @@ function SellerRegister() {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  error={!!formErrors.password}
+                  helperText={formErrors.password}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -167,6 +208,8 @@ function SellerRegister() {
                   type="password"
                   id="confirmPassword"
                   autoComplete="new-password"
+                  error={!!formErrors.confirmPassword}
+                  helperText={formErrors.confirmPassword}
                 />
               </Grid>
               <Grid item xs={12}>

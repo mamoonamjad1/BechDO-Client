@@ -25,6 +25,7 @@ import { CART } from './redux/Constants';
 import Cart from './pages/Cart';
 import Delivery from './Seller/pages/Delivery';
 import axios from 'axios';
+import PersonalizedProduct from './pages/PersonalizedProducts';
 const socket = io('http://localhost:4000/abc');
 
 
@@ -66,6 +67,10 @@ function App() {
       {
         path:'/product/:id',
         element:<SingleProducts />
+      },
+      {
+        path:'/seller/store/:id',
+        element:<PersonalizedProduct />
       },
       {
         path:'/checkout',

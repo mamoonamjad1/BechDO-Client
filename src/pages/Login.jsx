@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -11,7 +11,7 @@ import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Typography from "@mui/material/Typography";
@@ -19,6 +19,9 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { SetUser } from "../redux/actions/userAuth";
+import { GoogleLogin, googleLogout, useGoogleLogin } from "@react-oauth/google";
+import GoogleIcon from '@mui/icons-material/Google';
+import picture from '../assets/7611770.png'
 
 function Copyright(props) {
   return (
@@ -46,9 +49,13 @@ const defaultTheme = createTheme();
 
 export default function Login() {
   const navigate = useNavigate();
-  const {state} = useLocation();
+  const { state } = useLocation();
   const [loading, setLoading] = useState(false);
-  const  dispatchRedux = useDispatch()
+  const dispatchRedux = useDispatch();
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState({});
+
+
   const handleSubmit = (event) => {
     event.preventDefault();
     setLoading(true);
@@ -59,9 +66,9 @@ export default function Login() {
     axios
       .post("http://localhost:4000/users/login", { email, password })
       .then((res) => {
-        console.log(res)
+        console.log(res);
         localStorage.setItem("buyerToken", res.data.token);
-        dispatchRedux(SetUser(res.data.payload))
+        dispatchRedux(SetUser(res.data.payload));
         if (state) {
           toast.success("Successfully Logged In", {
             position: toast.POSITION.TOP_CENTER,
@@ -69,12 +76,12 @@ export default function Login() {
           setTimeout(() => {
             navigate(state.from);
           }, 1000);
-        }else{
+        } else {
           toast.success("Successfully Logged In", {
             position: toast.POSITION.TOP_CENTER,
           });
           setTimeout(() => {
-            navigate('/');
+            navigate("/");
           }, 1000);
         }
       })
@@ -85,6 +92,66 @@ export default function Login() {
         setLoading(false);
       });
   };
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (user) => {console.log('Login Success:', user)
+    setUser(user);
+  },
+    onError: (error) => console.log('Login Failed:', error)
+});
+
+const logout = () =>{
+  googleLogout()
+}
+
+useEffect(() => {
+  if (user) {
+    axios
+      .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
+        headers: {
+          Authorization: `Bearer ${user.access_token}`,
+          Accept: 'application/json'
+        }
+      })
+      .then((res) => {
+        console.log(res.data);
+        setProfile(res.data);
+      })
+      .catch((err) => console.log(err));
+  }
+}, [user]);
+
+useEffect(() => {
+  if (profile && Object.keys(profile).length > 0) {
+    axios
+      .post("http://localhost:4000/users/login", { profile, authType: "google" })
+      .then((res) => {
+        console.log("Google Login: ", res);
+        localStorage.setItem("buyerToken", res.data.token);
+        dispatchRedux(SetUser(res.data.payload));
+        if (state) {
+          toast.success("Successfully Logged In", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+          setTimeout(() => {
+            navigate(state.from);
+          }, 1000);
+        } else {
+          toast.success("Successfully Logged In", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+          setTimeout(() => {
+            navigate("/");
+          }, 1000);
+        }
+      })
+      .catch(() => {
+        toast.error("Unable to Login");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+}, [profile]); 
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -201,10 +268,10 @@ export default function Login() {
                   },
                 }}
               />
-              <FormControlLabel
+              {/* <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
                 label="Remember me"
-              />
+              /> */}
               <Button
                 type="submit"
                 fullWidth
@@ -214,12 +281,22 @@ export default function Login() {
               >
                 {loading ? "Loading..." : "Sign In"}
               </Button>
+              <Button
+              variant="contained"
+              onClick={handleGoogleLogin}
+              sx={{backgroundColor:'white', color:'black'}}
+              fullWidth
+              >
+                <img src={picture} alt="Google Icon" style={{width:'20px', height:'20px', marginRight:'10px'}}/>
+                  Sign In With Google
+              </Button>
+
               <Grid container>
-                <Grid item xs>
+                {/* <Grid item xs>
                   <Link href="#" variant="body2">
                     Forgot password?
                   </Link>
-                </Grid>
+                </Grid> */}
                 <Grid item>
                   <NavLink
                     to={"/register"}

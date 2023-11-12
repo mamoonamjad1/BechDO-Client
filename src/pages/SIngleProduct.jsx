@@ -8,6 +8,10 @@ import {
   styled,
   Box,
   useMediaQuery,
+  Dialog,
+  DialogTitle,
+  IconButton,
+  DialogContent,
 } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
@@ -18,6 +22,8 @@ import { toast } from "react-toastify";
 import moment from "moment/moment";
 import { useSelector } from "react-redux";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 
 const MainImageWrapper = styled(CardMedia)({
   width: "100%",
@@ -74,6 +80,8 @@ const SingleProduct = () => {
   const location = useLocation();
   const [remainingTime, setRemainingTime] = useState(0);
   const update = useSelector((state) => state.currentPriceReducer);
+  const [openSeller, setOpenSeller] = useState(false);
+  
   useEffect(() => {
     axios
       .get(`http://localhost:4000/product/get-single/${id}`)
@@ -148,6 +156,13 @@ const SingleProduct = () => {
     }
   };
 
+  const handleClose = () => {
+    setOpenSeller(false);
+  };
+  const openSellerContent = () => {
+    setOpenSeller(true);
+  };
+
   const splitDescription = (description) => {
     const words = description.split(" ");
     const chunks = [];
@@ -217,10 +232,32 @@ const SingleProduct = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Typography variant="h4">{product.name}</Typography>
-          <Typography variant="subtitle-2" gutterBottom sx={{ color: "red" }}>
-          Category: {product.category?.name || "N/A"}
+          {product.description && (
+            <>
+              {splitDescription(product.description).map((chunk, index) => (
+                <Typography key={index} variant="caption" sx={{ mb: 2 }}>
+                  Description: {chunk}
+                </Typography>
+              ))}
+            </>
+          )}
+          <br/>
+          <Typography variant="caption" gutterBottom >
+            Category: {product.category?.name || "N/A"}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center" ,mt:2,mb:1 }}>
+
+          <br />
+          <Button
+            variant="outlined"
+            onClick={openSellerContent}
+          >
+            <Typography variant="caption" sx={{ color: "red" }}>
+            Seller: {product.owner?.firstName || "N/A"}{" "}
+              {product.owner?.lastName || ""}
+            </Typography>
+          </Button>
+
+          <Box sx={{ display: "flex", alignItems: "center", mt: 2, mb: 1 }}>
             <div style={{ display: "flex", alignItems: "center" }}>
               <FiberManualRecordIcon sx={{ color: "green" }} />
               <Typography variant="body2" sx={{ mr: 1 }}>
@@ -238,15 +275,7 @@ const SingleProduct = () => {
               <Typography variant="body1">Model: {product.model}</Typography>
             </div>
           </Box>
-          {product.description && (
-            <>
-              {splitDescription(product.description).map((chunk, index) => (
-                <Typography key={index} variant="body1" sx={{mb:2}}>
-                  Description: {chunk}
-                </Typography>
-              ))}
-            </>
-          )}
+
           {product.basePrice && (
             <Typography variant="h6">
               Base Price: $
@@ -303,6 +332,65 @@ const SingleProduct = () => {
           </Grid>
         </Grid>
       </ProductInfoContainer>
+      <Dialog
+        open={openSeller}
+        onClose={handleClose}
+        sx={{ textAlign: "center" }}
+      >
+        <DialogTitle
+          sx={{
+            textAlign: "center",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: "#0C134F",
+            color: "white",
+          }}
+        >
+          Seller Details
+          <IconButton
+            onClick={handleClose}
+            sx={{ marginLeft: "auto", color: "white" }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <img
+            src={`${product.owner?.image}`}
+            alt="Seller"
+            width="30%"
+            sx={{ borderRadius: "50%" }}
+          />
+          <Typography variant="h6">
+            Seller: {product.owner?.firstName || "N/A"}{" "}
+            {product.owner?.lastName || ""}
+          </Typography>
+          <Typography variant="body1">
+            Email: {product.owner?.email || "N/A"}
+          </Typography>
+          <Typography variant="body1">
+            Phone: {product.owner?.phoneNumber || "N/A"}
+          </Typography>
+          <Button
+            onClick={() => {
+              console.log("Hello");
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+              color: "orange",
+              "&:hover": { color: "white", backgroundColor: "orange" },
+            }}
+          >
+            <Typography variant="button" sx={{ mr: 1 }} onClick={()=>{navigate(`/seller/store/${product.owner._id}`)}}>
+              View Storefront
+            </Typography>
+            <ArrowRightAltIcon />
+          </Button>
+        </DialogContent>
+      </Dialog>
     </MainContainer>
   );
 };

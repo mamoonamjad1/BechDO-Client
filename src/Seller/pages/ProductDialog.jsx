@@ -34,15 +34,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const API_KEY = "1958eacc32msh9290c0242783475p18a139jsn2b694dbe5f44";
-
-const config = {
-  headers: {
-    "X-RapidAPI-Key": API_KEY,
-    "X-RapidAPI-Host": "car-data.p.rapidapi.com",
-  },
-};
-
 const ProductDialog = ({ open, handleClose }) => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
@@ -67,9 +58,14 @@ const ProductDialog = ({ open, handleClose }) => {
 
   const [isQuantityValid, setIsQuantityValid] = useState(true);
   const [isBasePriceValid, setIsBasePriceValid] = useState(true);
+  const [isDurationValid, setIsDurationValid] = useState(true);
   const [quantityErrorMsg, setQuantityErrorMsg] = useState("");
   const [basePriceErrorMsg, setBasePriceErrorMsg] = useState("");
+  const [durationErrorMsg, setDurationErrorMsg] = useState("");
   const [isRequiredFieldsValid, setIsRequiredFieldsValid] = useState(true);
+
+  const [durationUnit, setDurationUnit] = useState("days");
+  const [durationValue, setDurationValue] = useState("");
 
   useEffect(() => {
     axios
@@ -84,6 +80,7 @@ const ProductDialog = ({ open, handleClose }) => {
       });
   }, []);
 
+  //get Car Make
   useEffect(() => {
     axios
       .get("http://localhost:4000/cars/carMakes")
@@ -138,21 +135,42 @@ const ProductDialog = ({ open, handleClose }) => {
     setYears(yearArray);
   }, []);
 
+
+
   const handleSubmit = () => {
     if (!isQuantityValid || !isBasePriceValid) {
       // Validation failed, do not submit the form
       return;
     }
-    if(!selectedMake || !model || !selectedVariant || !category || !name || !productDescription || !basePrice || !quantity || !duration || !categoryId || !images) {
+    if (
+      !selectedMake ||
+      !model ||
+      !selectedVariant ||
+      !category ||
+      !name ||
+      !basePrice ||
+      !quantity ||
+      !categoryId
+    ) {
       setIsRequiredFieldsValid(false);
       return;
     }
 
-    // if (!areRequiredFieldsValid || !isQuantityValid || !isBasePriceValid) {
-    //   // Validation failed, set the state to false to highlight required fields
-    //   setIsRequiredFieldsValid(false);
-    //   return;
-    // }
+    // Convert duration to seconds based on the selected unit
+  let durationInSeconds = 0;
+  switch (durationUnit) {
+    case 'days':
+      durationInSeconds = parseInt(durationValue, 10) * 24 * 60 * 60;
+      break;
+    case 'hours':
+      durationInSeconds = parseInt(durationValue, 10) * 60 * 60;
+      break;
+    case 'minutes':
+      durationInSeconds = parseInt(durationValue, 10) * 60;
+      break;
+    default:
+      break;
+  }
     const token = localStorage.getItem("sellerToken");
     const decode = jwtDecode(token);
     const id = decode._id;
@@ -164,7 +182,7 @@ const ProductDialog = ({ open, handleClose }) => {
     formData.append("description", productDescription);
     formData.append("basePrice", basePrice);
     formData.append("quantity", quantity); // Fixed typo Quantity -> quantity
-    formData.append("duration", duration);
+    formData.append("duration", durationInSeconds);
     formData.append("categoryID", categoryId);
     formData.append("ownerID", id);
     images.forEach((image) => {
@@ -227,7 +245,9 @@ const ProductDialog = ({ open, handleClose }) => {
     const value = event.target.value;
     if (value < 0 || isNaN(value)) {
       setIsQuantityValid(false);
-      setQuantityErrorMsg("Quantity cannot be less than 0 and cannot be an alphabet or word");
+      setQuantityErrorMsg(
+        "Quantity cannot be less than 0 and cannot be an alphabet or word"
+      );
     } else {
       setIsQuantityValid(true);
       setQuantityErrorMsg("");
@@ -239,13 +259,34 @@ const ProductDialog = ({ open, handleClose }) => {
     const value = event.target.value;
     if (value < 0 || isNaN(value)) {
       setIsBasePriceValid(false);
-      setBasePriceErrorMsg("Base Price cannot be less than 0 and cannot be an alphabet or word");
+      setBasePriceErrorMsg(
+        "Base Price cannot be less than 0 and cannot be an alphabet or word"
+      );
     } else {
       setIsBasePriceValid(true);
       setBasePriceErrorMsg("");
       setBasePrice(value);
     }
   };
+
+  const handleDurationUnitChange = (event) => {
+    setDurationUnit(event.target.value);
+    setDurationValue(""); 
+    
+  };
+  const handleDurationInput = (event) => {
+    const value = event.target.value;
+    if (value < 0 || isNaN(value)) {
+      setIsDurationValid(false);
+      setDurationErrorMsg(
+        "Duration cannot be less than 0 and cannot be an alphabet or word"
+      );
+    } else {
+      setIsDurationValid(true);
+      setDurationErrorMsg("");
+      setDurationValue(value);
+    }
+  }
 
   return (
     <>
@@ -273,18 +314,19 @@ const ProductDialog = ({ open, handleClose }) => {
             ADD A PRODUCT
           </Typography>
           {!isRequiredFieldsValid && (
-              <Typography variant="caption" sx={{ color: "red" }}>
-                Please fill all the required fields
-              </Typography>
-            
+            <Typography variant="caption" sx={{ color: "red" }}>
+              Please fill all the required fields
+            </Typography>
           )}
 
           <Grid container spacing={2}>
             {/* //Company Name */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined" 
-               error={!isRequiredFieldsValid}
-               >
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={!isRequiredFieldsValid}
+              >
                 <InputLabel>Make*</InputLabel>
                 <Select
                   label="Make*"
@@ -306,8 +348,11 @@ const ProductDialog = ({ open, handleClose }) => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined"
-              error={!isRequiredFieldsValid}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={!isRequiredFieldsValid}
+              >
                 <InputLabel>Model*</InputLabel>
                 <Select
                   label="Model*"
@@ -329,8 +374,11 @@ const ProductDialog = ({ open, handleClose }) => {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined"
-              error={!isRequiredFieldsValid}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={!isRequiredFieldsValid}
+              >
                 <InputLabel>Variant*</InputLabel>
                 <Select
                   label="Variant*"
@@ -353,8 +401,11 @@ const ProductDialog = ({ open, handleClose }) => {
 
             {/* Category */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined"
-              error={!isRequiredFieldsValid}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={!isRequiredFieldsValid}
+              >
                 <InputLabel>Category*</InputLabel>
                 <Select
                   label="Category*"
@@ -376,8 +427,11 @@ const ProductDialog = ({ open, handleClose }) => {
             </Grid>
 
             <Grid item xs={12}>
-              <FormControl fullWidth variant="outlined"
-              error={!isRequiredFieldsValid}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={!isRequiredFieldsValid}
+              >
                 <InputLabel>Product Name*</InputLabel>
                 <Select
                   label="Product Name*"
@@ -420,7 +474,6 @@ const ProductDialog = ({ open, handleClose }) => {
             <Grid item xs={12} sm={6}>
               <TextField
                 label="Base Price*"
-                
                 fullWidth
                 placeholder="Auction will start from this price point."
                 value={basePrice}
@@ -462,14 +515,33 @@ const ProductDialog = ({ open, handleClose }) => {
                 helperText={isQuantityValid ? "" : quantityErrorMsg}
               />
             </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl
+                fullWidth
+                variant="outlined"
+                error={!isRequiredFieldsValid}
+              >
+                <InputLabel>Duration Unit*</InputLabel>
+                <Select
+                  label="Duration Unit*"
+                  value={durationUnit}
+                  onChange={handleDurationUnitChange}
+                >
+                  <MenuItem value="days">Days</MenuItem>
+                  <MenuItem value="hours">Hours</MenuItem>
+                  <MenuItem value="minutes">Minutes</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Duration*"
-                error={!isRequiredFieldsValid}
+                label={`Duration (${durationUnit})`}
+                error={!isRequiredFieldsValid || !isDurationValid}
                 fullWidth
-                placeholder="Duration in seconds (Max 1 hour)"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                placeholder={`Enter duration in ${durationUnit}`}
+                value={durationValue}
+                onChange={handleDurationInput}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -477,8 +549,13 @@ const ProductDialog = ({ open, handleClose }) => {
                     </InputAdornment>
                   ),
                 }}
+                sx={{
+                  borderColor: isDurationValid ? "" : "red", // Change border color to red if not valid
+                }}
                 variant="outlined"
+                helperText={isDurationValid ? "" : durationErrorMsg}
               />
+
             </Grid>
 
             <Grid item xs={12}>

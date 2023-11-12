@@ -11,8 +11,8 @@ const Banner = ({ item }) => {
         backgroundImage: `url(${item.image})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        width: '100%',
-        height: isMobileScreen ? '200px' : '400px', // Adjust height for mobile and desktop
+        width: isMobileScreen ? '100%' : '100%',
+        height: isMobileScreen ? '150px' : '400px', // Adjust height for mobile and desktop
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
@@ -20,7 +20,7 @@ const Banner = ({ item }) => {
         margin: '0 auto', // Center horizontally
       }}
     >
-      <Button
+      {/* <Button
         color="secondary"
         variant="contained"
         style={{ marginTop: isMobileScreen ? '80px' : '120px' }} // Adjust marginTop for mobile and desktop
@@ -34,7 +34,7 @@ const Banner = ({ item }) => {
       >
         Explore
         <ArrowRightAltIcon />
-      </Button>
+      </Button> */}
     </div>
   );
 };

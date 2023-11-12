@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Grid, Button, Typography } from '@mui/material';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
@@ -8,23 +8,34 @@ import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import { Link } from 'react-router-dom';
+import ButtonBase from '@mui/material/ButtonBase';
+import Paper from '@mui/material/Paper';
+import { useParams } from 'react-router-dom';
+import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 
-const Live = () => {
+const PersonalizedProduct = () => {
   const [items, setItems] = useState([]);
+  const [owner, setOwner] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const { id } = useParams();
 
   useEffect(() => {
     // Fetch data from the API
     axios
-      .get("http://localhost:4000/product/get-live")
+      .get(`http://localhost:4000/product/get/store/${id}`)
       .then((response) => {
+        console.log('RESSS', response.data);
         setItems(response.data);
+        // Set owner details for the first item
+        if (response.data.length > 0) {
+          setOwner(response.data[0].owner || {});
+        }
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
       });
-  }, []);
+  }, [id]);
 
   const totalPageCount = Math.ceil(items.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -41,9 +52,53 @@ const Live = () => {
 
   return (
     <>
-      <Grid container spacing={2} sx={{ mt: 2, mb: 2 }}>
+    <Grid
+      container
+      justifyContent="center"
+      alignItems="center"
+    >
+      <Grid item xs={12} sm={12} md={8}>
+        <Paper
+          sx={{
+            p: 2,
+            textAlign: 'center',
+            backgroundColor: 'grey',
+            color: 'black',
+            boxShadow: '10px 10px 10px rgba(0.5, 0.5, 0, 0.5)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+            <Typography variant="h4" sx={{ m:1 }}>
+                Store Owner
+            </Typography>
+          <ButtonBase sx={{ width: 250, height: 180 }}>
+            <img
+              alt="owner"
+              src={owner.image}
+              style={{
+                borderRadius: '50%',
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          </ButtonBase>
+          <Typography variant="h6" sx={{ marginTop: 2 }}>
+            Name: {owner.firstName} {owner.lastName}
+          </Typography>
+          <Typography variant="subtitle1">Email: {owner.email}</Typography>
+          <Typography variant="subtitle1">Address: {owner.address}</Typography>
+          <Typography variant="subtitle1">Phone: {owner.phoneNumber}</Typography>
+        </Paper>
+      </Grid>
+    </Grid>
+    <Typography variant="h4" sx={{ m:2}}>
+        Products <ArrowRightAlt /> 
+        </Typography>
+      <Grid container spacing={1} sx={{ mt: 2, mb: 2 }}>
         {visibleItems.map((item, index) => (
-          <Grid item xs={6} sm={6} md={2} key={index}>
+          <Grid item xs={6} sm={6} md={2} key={index} sx={{m:2}}>
             <Link to={`/product/${item._id}`} style={{ textDecoration: 'none' }}>
               <Card
                 sx={{
@@ -52,6 +107,7 @@ const Live = () => {
                   height: '100%', // Set fixed height
                   display: 'flex',
                   flexDirection: 'column',
+                  
                 }}
               >
                 <CardHeader
@@ -101,4 +157,4 @@ const Live = () => {
   );
 };
 
-export default Live;
+export default PersonalizedProduct;

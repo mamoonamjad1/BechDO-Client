@@ -27,7 +27,7 @@ const Images = () => {
   return (
     <Carousel
       animation="fade"
-      interval={3000} 
+      interval={2000} 
     >
       {items.map((item) => (
         <Banner key={item.id} item={item} />
