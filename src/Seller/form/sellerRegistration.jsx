@@ -92,12 +92,18 @@ function SellerRegister() {
         formData
       );
 
-      console.log("Successful");
+      console.log("Successful",response);
       setIsLoading(false);
       toast.success("Welcome Onboard");
       navigate("/seller/sign-in");
     } catch (error) {
-      console.log("Unsuccessful");
+      console.log("Unsuccessful",error);
+      toast.error(`${error.response.data}`, {
+        position: toast.POSITION.TOP_CENTER,
+      });
+      if (error.response.data === "User Already Registered") {
+        navigate("/seller/sign-in");
+      }
       setIsLoading(false);
     }
   };

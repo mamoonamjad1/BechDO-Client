@@ -1,5 +1,8 @@
-import * as React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -13,68 +16,64 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 
 function Register() {
-  const [selectedImage, setSelectedImage] = useState(null);
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
+  // useEffect(() => {
+  //   // Check if the user is verified when the component mounts
+  //   axios
+  //     .get("http://localhost:4000/users/verify-status")
+  //     .then((response) => {
+  //       const { data } = response;
+  //       if (data.verified) {
+  //         navigate("/"); // Redirect to homepage if verified
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error checking verification status:", error);
+  //     });
+  // }, []); // Empty dependency array ensures the effect runs only once on mount
 
   const handleSubmit = (event) => {
     event.preventDefault();
     setLoading(true);
+
     const form = event.currentTarget;
-    // const fileInput = form.elements["image"].files[0];
+    const data = new FormData(form);
 
-    // if (fileInput) {
-    //   const file = fileInput;
-    //   const fileUrl = URL.createObjectURL(file);
-    //   setSelectedImage(fileUrl);
-      const data = new FormData(form);
-      // data.append("image", file);
+    const password = data.get("password");
+    const confirmPassword = data.get("confirmPassword");
 
-      const password = data.get("password");
-      const confirmPassword = data.get("confirmPassword");
+    if (password === confirmPassword) {
+      const request = {
+        firstName: data.get("firstName"),
+        lastName: data.get("lastName"),
+        email: data.get("email"),
+        password: password,
+        confirmPassword: confirmPassword,
+      };
 
-      if (password === confirmPassword) {
-        const request = {
-          firstName: data.get("firstName"),
-          lastName: data.get("lastName"),
-          email: data.get("email"),
-          password: password,
-          confirmPassword: confirmPassword,
-          // image: file,
-        };
-
-        axios
-          .post("http://localhost:4000/users/register", request)
-          .then(() => {
-              toast.success("Successfully Registered", {
-                position: toast.POSITION.TOP_CENTER,
-              });
-              setTimeout(() => {
-                navigate("/login");
-              }, 1500);
-            }
-          )
-          .catch(() => {
-            console.log("Unsuccessful");
-          }).finally(()=>{
-            setLoading(false)
-          })
-      } else {
-        // Handle case when passwords don't match
-        console.log("Passwords do not match");
-      }
-    // } else {
-    //   // Handle case when no file is selected
-    //   console.log("No file selected");
-    // }
+      axios
+        .post("http://localhost:4000/users/register", request)
+        .then(() => {
+          toast.success("Successfully Registered. Please check your email for verification.", {
+            position: toast.POSITION.TOP_CENTER,
+          });
+          // Redirect to the waiting page after successful registration
+          navigate("/login");
+        })
+        .catch(() => {
+          console.log("Unsuccessful");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      // Handle case when passwords don't match
+      console.log("Passwords do not match");
+    }
   };
 
   return (
@@ -95,12 +94,7 @@ function Register() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box
-            component="form"
-            noValidate
-            onSubmit={handleSubmit}
-            sx={{ mt: 3 }}
-          >
+          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -156,28 +150,10 @@ function Register() {
                 />
               </Grid>
               <Grid item xs={12}>
-                {/* <div>
-                  <input
-                    accept="image/*"
-                    id="image-uploader"
-                    type="file"
-                    style={{ display: "none" }}
-                    name="image" // Add the name attribute
-                  />
-                  <label htmlFor="image-uploader"> */}
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      color="secondary"
-                      component="span"
-                      onClick={()=>{
-                        navigate('/seller/register')
-                      }}
-                    >
-                      Sign UP AS SELLER
-                    </Button>
-                  {/* </label>
-                </div> */}
+                <FormControlLabel
+                  control={<Checkbox value="allowExtraEmails" color="primary" />}
+                  label="I want to receive marketing emails and promotions."
+                />
               </Grid>
             </Grid>
             <Button
@@ -198,7 +174,7 @@ function Register() {
             </Grid>
           </Box>
         </Box>
-        <ToastContainer/>
+        <ToastContainer />
       </Container>
     </ThemeProvider>
   );

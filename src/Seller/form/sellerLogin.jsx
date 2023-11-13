@@ -48,6 +48,7 @@ export default function SellerLogin() {
     axios
       .post('http://localhost:4000/seller/login', { email, password })
       .then((res) => {
+        console.log(res)
         localStorage.setItem('sellerToken', res.data.token);
         localStorage.setItem('seller', res.data.id);
         toast.success(`Welcome ${res.data.firstName}`, {
@@ -57,9 +58,15 @@ export default function SellerLogin() {
           navigate('/seller/pages/dashboard');
         }, 1500);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log('error',error);
+        if(error.response.data != "Please Verify Your Email First"){
         setLoginError(true);
-        toast.error('Invalid email or password', {
+        }
+        if(error.response.data == "User Is Not Registered"){
+            navigate('/seller/register');
+        }
+        toast.error(`${error.response.data}`, {
           position: toast.POSITION.TOP_CENTER,
         });
       })
@@ -176,15 +183,15 @@ export default function SellerLogin() {
               >
                 Sign In
               </Button>
-              <Typography variant="body2" color="red" align="center" sx={{ mb: 2 }}>
+              <Typography variant="body2" color="red" align="center" sx={{ mb:1 }}>
                 {loginError && 'Invalid email or password'}
               </Typography>
               <Grid container>
-                <Grid item xs>
+                {/* <Grid item xs>
                   <Link href="#" variant="body2">
                     Forgot password?
                   </Link>
-                </Grid>
+                </Grid> */}
                 <Grid item>
                   <NavLink to={'/seller/register'} variant="body2" style={{ textDecoration: 'none', color: 'inherit' }}>
                     Don't have an account? Sign Up

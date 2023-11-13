@@ -26,6 +26,7 @@ import Cart from './pages/Cart';
 import Delivery from './Seller/pages/Delivery';
 import axios from 'axios';
 import PersonalizedProduct from './pages/PersonalizedProducts';
+import Waiting from './components/utils/Wait';
 const socket = io('http://localhost:4000/abc');
 
 
@@ -79,6 +80,10 @@ function App() {
       {
         path:'/cart',
         element: <Cart/>
+      },
+      {
+        path:'/wait',
+        element: <Waiting/>
       },
       ]
     },
