@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef} from "react";
 import { styled } from "@mui/material/styles";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
@@ -34,6 +34,9 @@ import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutli
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import ProductionQuantityLimitsIcon from "@mui/icons-material/ProductionQuantityLimits";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import { useNavigate } from "react-router-dom";
+
 const Img = styled("img")({
   margin: "auto",
   display: "block",
@@ -66,6 +69,20 @@ export default function DashBoard() {
   const [categoryId, setCategoryId] = useState("");
   const [make, setMake] = useState("");
   const [variant, setVariant] = useState("");
+  const [openProfile, setOpenProfile] = useState(false);
+  const [firstName, setFirstName] = useState(decode.firstName);
+  const [lastName, setLastName] = useState(decode.lastName);
+  const [email, setEmail] = useState(decode.email);
+  const [phoneNumber, setPhoneNumber] = useState(decode.phoneNumber);
+  const [address, setAddress] = useState(decode.address);
+  const [password, setPassword] = useState(decode.password);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passVisible, setPassVisible] = useState(false);
+  const navigate = useNavigate();
+  const [profileError, setProfileError] = useState(false);
+  const [picture, setPicture] = useState(null);
+  const fileInputRef = useRef(null);
+
 
   React.useEffect(() => {
     axios
@@ -191,17 +208,17 @@ export default function DashBoard() {
 
   const handleEdit = () => {
     console.log("handleEdit called");
-    console.log("Unit",durationUnit)
-    console.log("Duration",duration)
+    console.log("Unit", durationUnit);
+    console.log("Duration", duration);
     let durationInSeconds = 0;
     switch (durationUnit) {
-      case 'days':
+      case "days":
         durationInSeconds = parseInt(duration, 10) * 24 * 60 * 60;
         break;
-      case 'hours':
+      case "hours":
         durationInSeconds = parseInt(duration, 10) * 60 * 60;
         break;
-      case 'minutes':
+      case "minutes":
         durationInSeconds = parseInt(duration, 10) * 60;
         break;
       default:
@@ -297,6 +314,71 @@ export default function DashBoard() {
       setQuantity(event.target.value);
     }
   };
+
+  const handleCloseProfile = () => {
+    setOpenProfile(false);
+  };
+  const handlePictureChange = (event) => {
+    setPicture(event.target.files[0]);
+  };
+
+  const handleEditProfile = () => {
+    // if(password !== confirmPassword){
+    //   setProfileError(true);
+    //   return;
+    // }
+    if (
+      firstName === "" ||
+      lastName === "" ||
+      email === "" ||
+      phoneNumber === "" ||
+      address === ""
+    ) {
+      setProfileError(true);
+      return;
+    }
+    // if(password && confirmPassword === ""){
+    //   setProfileError(true);
+    //   return;
+    // }
+    axios
+      .put(`http://localhost:4000/seller/edit/profile/${decode._id}`, {
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        address,
+        password,
+        confirmPassword,
+        image: picture,
+      })
+      .then((response) => {
+        console.log(response.data);
+        // Update the state values after a successful profile update
+        if (response.data === "Password Updated Successfully") {
+          toast.success("Password Updated Successfully");
+          localStorage.removeItem("sellerToken");
+          navigate("/seller/sign-in");
+        }
+        if (response.data.verified === "false") {
+          toast.success(
+            "Profile Updated Successfully, Please Verify Your Email"
+          );
+          localStorage.removeItem("sellerToken");
+          navigate("/seller/sign-in");
+        }
+        setFirstName(response.data.firstName);
+        setLastName(response.data.lastName);
+        setEmail(response.data.email);
+        setPhoneNumber(response.data.phoneNumber);
+        setAddress(response.data.address);
+        toast.success("Profile Updated Successfully");
+        handleCloseProfile();
+      })
+      .catch((error) => {
+        console.error("Error submitting form:", error);
+      });
+  };
   return (
     <>
       <Grid container>
@@ -314,6 +396,17 @@ export default function DashBoard() {
               boxShadow: "10px 10px 10px rgba(0.5, 0.5, 0, 0.5)",
             }}
           >
+            <Tooltip title="Change Password" arrow>
+              <IconButton
+                sx={{ float: "right" }}
+                onClick={() => {
+                  setOpenProfile(true);
+                }}
+              >
+                <ManageAccountsIcon />
+              </IconButton>
+            </Tooltip>
+
             <Grid
               container
               justifyContent="center"
@@ -344,16 +437,14 @@ export default function DashBoard() {
                 >
                   <Grid item xs>
                     <Typography variant="h6">
-                      Name: {decode.firstName} {decode.lastName}
+                      Name: {firstName} {lastName}
+                    </Typography>
+                    <Typography variant="subtitle1">Email: {email}</Typography>
+                    <Typography variant="subtitle1">
+                      Address: {address}
                     </Typography>
                     <Typography variant="subtitle1">
-                      Email: {decode.email}
-                    </Typography>
-                    <Typography variant="subtitle1">
-                      Address: {decode.address}
-                    </Typography>
-                    <Typography variant="subtitle1">
-                      Phone: {decode.phoneNumber}
+                      Phone: {phoneNumber}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -602,7 +693,6 @@ export default function DashBoard() {
                 variant="outlined"
               />
             </Grid>
-
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -610,6 +700,132 @@ export default function DashBoard() {
             Close
           </Button>
           <Button variant="contained" onClick={handleEdit}>
+            Edit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openProfile} onClose={handleCloseProfile}>
+        <DialogTitle sx={{textAlign:'center'}}>Change Password</DialogTitle>
+
+        <DialogContent>
+          <Grid container spacing={2}>
+            {/* <Grid item xs={12} sm={6}>
+              <TextField
+                error={profileError}
+                sx={{ mt: 2 }}
+                label="First Name"
+                fullWidth
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                variant="outlined"
+                helperText={profileError ? "Name Can not be empty" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                error={profileError}
+                sx={{ mt: 2 }}
+                label="Last Name"
+                fullWidth
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                variant="outlined"
+                helperText={profileError ? "Name Can not be empty" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                error={profileError}
+                label="Email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                variant="outlined"
+                helperText={profileError ? "Email Can not be empty" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                error={profileError}
+                label="Phone Number"
+                fullWidth
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                variant="outlined"
+                helperText={profileError ? "Phone Number Can not be empty" : ""}
+              />
+            </Grid>
+            <Grid item xs={12} sm={12}>
+              <TextField
+                error={profileError}
+                label="Address"
+                fullWidth
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                variant="outlined"
+                helperText={profileError ? "Address Can not be empty" : ""}
+              />
+            </Grid>
+            <Button
+              fullWidth
+              variant="contained"
+              color="warning"
+              onClick={() => {
+                setPassVisible(true);
+              }}
+              sx={{ m: 2 }}
+            >
+              CHANGE PASSWORD
+            </Button>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePictureChange}
+              style={{ display: "none" }} // Hide the input element
+              ref={fileInputRef} // Create a ref to the input element
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => fileInputRef.current.click()} // Trigger the click on the input element
+              sx={{ mt: 2 }}
+            >
+              Change Profile Picture
+            </Button> */}
+            {/* {passVisible && (
+              <> */}
+                <Grid item xs={12} sm={12}>
+                  <TextField
+                    error={profileError}
+                    type="password"
+                    label="Password"
+                    fullWidth
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12}>
+                  <TextField
+                    error={profileError}
+                    type="password"
+                    label="Confirm Password"
+                    fullWidth
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    variant="outlined"
+                  />
+                </Grid>
+              {/* </>
+            )} */}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseProfile} variant="contained" color="error">
+            Close
+          </Button>
+          <Button variant="contained" sx={{backgroundColor:'green'}} onClick={handleEditProfile} >
             Edit
           </Button>
         </DialogActions>

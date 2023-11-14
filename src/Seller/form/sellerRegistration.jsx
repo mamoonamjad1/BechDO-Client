@@ -20,90 +20,56 @@ function SellerRegister() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [fileError, setFileError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setUploadedFile(file);
+    setFileError(null); // Reset file error when a new file is selected
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
 
-    const firstName = data.get("firstName");
-    const lastName = data.get("lastName");
-    const address = data.get("address");
-    const phoneNumber = data.get("phoneNumber");
-    const email = data.get("email");
-    const password = data.get("password");
-    const confirmPassword = data.get("confirmPassword");
+    const formData = new FormData();
 
-    // Validate form fields
-    const errors = {};
-    if (!firstName) {
-      errors.firstName = "First Name is required";
-    }
-    if (!lastName) {
-      errors.lastName = "Last Name is required";
-    }
-    if (!address) {
-      errors.address = "Address is required";
-    }
-    if (!phoneNumber) {
-      errors.phoneNumber = "Phone Number is required";
-    }
-    if (!email) {
-      errors.email = "Email is required";
-    }
-    if (!password) {
-      errors.password = "Password is required";
-    }
-    if (!confirmPassword) {
-      errors.confirmPassword = "Confirm Password is required";
-    }
-    if (password !== confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
+    formData.append("firstName", event.target.elements.firstName.value);
+    formData.append("lastName", event.target.elements.lastName.value);
+    formData.append("address", event.target.elements.address.value);
+    formData.append("phoneNumber", event.target.elements.phoneNumber.value);
+    formData.append("email", event.target.elements.email.value);
+    formData.append("password", event.target.elements.password.value);
+    formData.append("confirmPassword", event.target.elements.confirmPassword.value);
 
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    if (!uploadedFile) {
+      setFileError("Please upload a profile picture.");
       return;
     }
+
+    formData.append("image", uploadedFile);
 
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("firstName", firstName);
-      formData.append("lastName", lastName);
-      formData.append("address", address);
-      formData.append("phoneNumber", phoneNumber);
-      formData.append("email", email);
-      formData.append("password", password);
-      formData.append("confirmPassword", confirmPassword);
-      if (uploadedFile) {
-        formData.append("image", uploadedFile);
-      }
-
-      const response = await axios.post(
-        "http://localhost:4000/seller/register",
-        formData
-      );
-
-      console.log("Successful",response);
+      const response = await axios.post("http://localhost:4000/seller/register", formData);
+      console.log("Successful", response);
       setIsLoading(false);
       toast.success("Welcome Onboard");
       navigate("/seller/sign-in");
     } catch (error) {
-      console.log("Unsuccessful",error);
-      toast.error(`${error.response.data}`, {
+      console.log("Unsuccessful", error);
+      toast.error(`${error.response?.data || 'Unable to Register'}`, {
         position: toast.POSITION.TOP_CENTER,
       });
-      if (error.response.data === "User Already Registered") {
+
+      if (error.response?.data === "User Already Registered") {
         navigate("/seller/sign-in");
+        toast.error("Please Login", {
+          position: toast.POSITION.TOP_CENTER,
+        });
       }
+
       setIsLoading(false);
     }
   };
@@ -225,6 +191,7 @@ function SellerRegister() {
                   ) : (
                     <>
                       <input
+                        required
                         accept="image/*"
                         id="image-uploader"
                         type="file"
@@ -236,12 +203,17 @@ function SellerRegister() {
                         <Button
                           variant="outlined"
                           fullWidth
-                          color="warning"
+                          color={fileError ? "error" : "warning"}
                           component="span"
                         >
                           Upload Image
                         </Button>
                       </label>
+                      {fileError && (
+                        <Typography variant="body2" sx={{ color: "red", marginTop: 1 }}>
+                          {fileError}
+                        </Typography>
+                      )}
                       {uploadedFile && (
                         <Typography variant="body2" sx={{ marginTop: 1 }}>
                           Uploaded Image: {uploadedFile.name}
