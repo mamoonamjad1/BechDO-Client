@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import {
+  DialogActions,
+  Slide,
+  Grid,
+  MenuItem,
+  TextField,
+  FormControl,
+  Select,
+  InputLabel,
+} from "@mui/material";
+import InputAdornment from "@mui/material/InputAdornment";
+import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled";
 import { alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
@@ -13,7 +25,7 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import { Button } from "@mui/material";
+import { Button, Dialog, DialogContent, DialogTitle } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -25,16 +37,10 @@ import axios from "axios";
 import { styled } from "@mui/material/styles"; // Import the styled function
 import { toast } from "react-toastify";
 import jwtDecode from "jwt-decode";
-
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
 // Function to create a row data object
-function createData(
-  productName,
-  description,
-  Quantity,
-  basePrice,
-  duration
-) {
+function createData(productName, description, Quantity, basePrice, duration) {
   return {
     productName,
     description,
@@ -64,6 +70,13 @@ export default function ProductTable() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [adData, setAdData] = useState([]);
   const [isSorted, setIsSorted] = useState(false); // State to track if the table is sorted
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [durationUnit, setDurationUnit] = useState("days");
+  const [durationValue, setDurationValue] = useState("");
+  const [isDurationValid, setIsDurationValid] = useState(true);
+  const [isRequiredFieldsValid, setIsRequiredFieldsValid] = useState(true);
+  const [durationErrorMsg, setDurationErrorMsg] = useState("");
+  const [pID, setPID] = useState("");
   const emptyRows = Math.max(
     0,
     rowsPerPage - Math.min(rowsPerPage, adData.length - page * rowsPerPage)
@@ -92,6 +105,13 @@ export default function ProductTable() {
 
     fetchAdData();
   }, []);
+
+  const handleOpenDialog = (id) => {
+    setPID(id);
+    setIsDialogOpen(true);
+  };
+
+
 
   // Function to handle table header sorting
   const handleRequestSort = (event, property) => {
@@ -151,16 +171,34 @@ export default function ProductTable() {
       label: "Product Name",
     },
     {
-      id: "description",
+      id: "Bidder",
       numeric: false,
       disablePadding: false,
-      label: "Description",
+      label: "Sold To",
+    },
+    {
+      id: "bidder",
+      numeric: true,
+      disablePadding: false,
+      label: "Buyer Email",
+    },
+    {
+      id: "paid",
+      numeric: true,
+      disablePadding: false,
+      label: "Paid",
     },
     {
       id: "quantity",
       numeric: true,
       disablePadding: false,
       label: "Quantity",
+    },
+    {
+      id: "bidStatus",
+      numeric: true,
+      disablePadding: false,
+      label: "Status",
     },
     {
       id: "basePrice",
@@ -175,12 +213,6 @@ export default function ProductTable() {
       label: "Sold At",
     },
     {
-      id: "duration",
-      numeric: true,
-      disablePadding: false,
-      label: "Duration",
-    },
-    {
       id: "actions", // New column for Actions
       numeric: false,
       disablePadding: false,
@@ -190,11 +222,7 @@ export default function ProductTable() {
 
   // Display the table header
   const EnhancedTableHead = (props) => {
-    const {
-      order,
-      orderBy,
-      onRequestSort,
-    } = props;
+    const { order, orderBy, onRequestSort } = props;
     const createSortHandler = (property) => (event) => {
       onRequestSort(event, property);
     };
@@ -224,7 +252,7 @@ export default function ProductTable() {
           {headCells.slice(1).map((headCell) => (
             <StyledTableCell // Use the custom styled TableCell
               key={headCell.id}
-              align='center'
+              align="center"
               padding={headCell.disablePadding ? "none" : "normal"}
               sortDirection={orderBy === headCell.id ? order : false}
               sx={{ color: "white" }}
@@ -261,24 +289,46 @@ export default function ProductTable() {
     return <div>Loading...</div>;
   }
 
-  const handleAuctionButtonClick = (productId) => {
+  const handleAuctionDeleteButtonClick = (productId) => {
     // Your auction button logic here
     // For example, you can trigger the auction process here
     if (productId) {
       let adId = productId;
       console.log(adId);
-        axios
-          .delete(`http://localhost:4000/product/delete/${adId}`)
-          .then((res) => {
-            toast.success(`Product Deleted`);
-          })
-          .catch(() => {
-            toast.error("Error");
-          });
-      } else {
-        toast.error("Product ID not available.");
+      axios
+        .delete(`http://localhost:4000/product/delete/${adId}`)
+        .then((res) => {
+          toast.success(`Product Deleted`);
+        })
+        .catch(() => {
+          toast.error("Error");
+        });
+    } else {
+      toast.error("Product ID not available.");
     }
   };
+    // Function to handle closing the restart auction dialog
+    const handleCloseDialog = () => {
+      setIsDialogOpen(false);
+      
+    };
+  
+    //Restart Auction
+    const handleRestartAuction = (productId) => {
+      let adId = productId;
+      axios
+        .put(`http://localhost:4000/auction/restart/${adId}`)
+        .then((res) => {
+          toast.success("Auction Restarted");
+          setIsDialogOpen(false);
+          setDurationValue("");
+        })
+        .catch((err) => {
+          console.error(err); 
+          toast.error("ERROR RESTARTING");
+        });
+    };
+    
 
   const visibleRows = stableSort(adData, getComparator(order, orderBy))
     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -296,29 +346,66 @@ export default function ProductTable() {
           <TableCell component="th" id={labelId} scope="row" padding="1px">
             {ad.name}
           </TableCell>
-          <TableCell align="center">{ad.description}</TableCell>
+          {ad.bidder ? (
+            <>
+              <TableCell align="center">
+                {ad.bidder.firstName} {ad.bidder.lastName}
+              </TableCell>
+              <TableCell align="center">{ad.bidder.email}</TableCell>
+            </>
+          ) : (
+            <>
+              <TableCell align="center">N/A</TableCell>
+              <TableCell align="center">N/A</TableCell>
+            </>
+          )}
+          {ad.paid == "UnPaid" && (
+            <TableCell align="center" sx={{ color: "red" }}>
+              {ad.paid}
+            </TableCell>
+          )}
+          {ad.paid == "Paid" && (
+            <TableCell align="center" sx={{ color: "green" }}>
+              {ad.paid}
+            </TableCell>
+          )}
           <TableCell align="center">{ad.quantity}</TableCell>
+          <TableCell align="center">{ad.bidStatus}</TableCell>
           <TableCell align="center">
             {ad.basePrice.$numberDecimal.toString()}
           </TableCell>
           <TableCell align="center">
             {ad.currentPrice.$numberDecimal.toString()}
           </TableCell>
-          <TableCell align="center">{ad.duration}</TableCell>
           <TableCell align="center">
             <Button
               variant="contained"
-              onClick={() => handleAuctionButtonClick(ad._id)}
+              onClick={() => handleAuctionDeleteButtonClick(ad._id)}
               sx={{
                 color: "white",
-                backgroundColor: "orange",
+                backgroundColor: "red",
                 "&:hover": {
                   backgroundColor: "#F4D160",
                 },
               }}
             >
-              <DeleteIcon/>
+              <DeleteIcon />
             </Button>
+            {ad.bidStatus == "Unsold" && (
+              <Button
+                variant="contained"
+                sx={{
+                  color: "white",
+                  backgroundColor: "orange",
+                  "&:hover": {
+                    backgroundColor: "#F4D160",
+                  },
+                }}
+                onClick={() => handleRestartAuction(ad._id)}
+              >
+                <RestartAltIcon />
+              </Button>
+            )}
           </TableCell>
         </TableRow>
       );
@@ -391,6 +478,53 @@ export default function ProductTable() {
         control={<Switch checked={dense} onChange={handleChangeDense} />}
         label="Dense padding"
       />
+      {/* 
+<Dialog open={isDialogOpen} onClose={handleCloseDialog}>
+    <DialogTitle>Restart Auction</DialogTitle>
+    <DialogContent>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth variant="outlined" error={!isRequiredFieldsValid}  margin='dense'>
+            <InputLabel>Duration Unit*</InputLabel>
+            <Select label="Duration Unit*" value={durationUnit} onChange={(e) => setDurationUnit(e.target.value)}>
+              <MenuItem value="days">Days</MenuItem>
+              <MenuItem value="hours">Hours</MenuItem>
+              <MenuItem value="minutes">Minutes</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label={`Duration (${durationUnit})`}
+            margin='dense'
+            error={!isRequiredFieldsValid || !isDurationValid}
+            fullWidth
+            placeholder={`Enter duration in ${durationUnit}`}
+            value={durationValue}
+            onChange={(e) => setDurationValue(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <AccessTimeFilledIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              borderColor: isDurationValid ? "" : "red",
+            }}
+            variant="outlined"
+            helperText={isDurationValid ? "" : durationErrorMsg}
+          />
+        </Grid>
+      </Grid>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleCloseDialog}>Cancel</Button>
+      <Button onClick={handleRestartAuction} variant="contained" sx={{ backgroundColor: "orange", "&:hover": { backgroundColor: "#F4D160" } }}>
+        Restart Auction
+      </Button>
+    </DialogActions>
+  </Dialog> */}
     </Box>
   );
 }

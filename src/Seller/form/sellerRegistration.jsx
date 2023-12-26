@@ -15,6 +15,9 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import { toast } from "react-toastify";
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+
 
 function SellerRegister() {
   const navigate = useNavigate();
@@ -22,6 +25,7 @@ function SellerRegister() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -32,22 +36,40 @@ function SellerRegister() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const formData = new FormData();
+    // Validate form fields
+    const formData = new FormData(event.target);
+    const formFields = Object.fromEntries(formData.entries());
 
-    formData.append("firstName", event.target.elements.firstName.value);
-    formData.append("lastName", event.target.elements.lastName.value);
-    formData.append("address", event.target.elements.address.value);
-    formData.append("phoneNumber", event.target.elements.phoneNumber.value);
-    formData.append("email", event.target.elements.email.value);
-    formData.append("password", event.target.elements.password.value);
-    formData.append("confirmPassword", event.target.elements.confirmPassword.value);
+    // Check for empty fields
+    const emptyFields = Object.entries(formFields).filter(
+      ([name, value]) => typeof value === 'string' && value.trim() === ''
+    );
+
+    if (emptyFields.length > 0) {
+      const errorFields = {};
+      emptyFields.forEach(([name]) => {
+        errorFields[name] = `Please enter ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+      });
+
+      setFormErrors({
+        ...errorFields,
+        emptyFields: 'Please fill out all the fields.',
+      });
+      return;
+    }
+
+    // Clear previous form errors
+    setFormErrors({});
+
+    // Continue with form submission
+    formData.set("phoneNumber", phoneNumber);
 
     if (!uploadedFile) {
       setFileError("Please upload a profile picture.");
       return;
     }
 
-    formData.append("image", uploadedFile);
+    formData.set("image", uploadedFile);
 
     setIsLoading(true);
 
@@ -109,7 +131,7 @@ function SellerRegister() {
                   label="First Name"
                   autoFocus
                   error={!!formErrors.firstName}
-                  helperText={formErrors.firstName}
+                  helperText={formErrors.firstName || 'Required'}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -121,7 +143,7 @@ function SellerRegister() {
                   name="lastName"
                   autoComplete="family-name"
                   error={!!formErrors.lastName}
-                  helperText={formErrors.lastName}
+                  helperText={formErrors.lastName || 'Required'}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -132,20 +154,27 @@ function SellerRegister() {
                   label="Address"
                   name="address"
                   error={!!formErrors.address}
-                  helperText={formErrors.address}
+                  helperText={formErrors.address || 'Required'}
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="phoneNumber"
-                  label="Phone Number"
-                  name="phoneNumber"
-                  error={!!formErrors.phoneNumber}
-                  helperText={formErrors.phoneNumber}
+                <PhoneInput
+                  country="pk"
+                  value={phoneNumber}
+                  onChange={(value) => setPhoneNumber(value)}
+                  inputStyle={{
+                    width: '100%',
+                    height: '40px',
+                  }}
+                  buttonStyle={{
+                    height: '40px',
+                  }}
+                  containerStyle={{
+                    width: '100%',
+                  }}
                 />
               </Grid>
+
               <Grid item xs={12}>
                 <TextField
                   required
@@ -155,7 +184,7 @@ function SellerRegister() {
                   name="email"
                   autoComplete="email"
                   error={!!formErrors.email}
-                  helperText={formErrors.email}
+                  helperText={formErrors.email || 'Required'}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -168,7 +197,7 @@ function SellerRegister() {
                   id="password"
                   autoComplete="new-password"
                   error={!!formErrors.password}
-                  helperText={formErrors.password}
+                  helperText={formErrors.password || 'Required'}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -181,7 +210,7 @@ function SellerRegister() {
                   id="confirmPassword"
                   autoComplete="new-password"
                   error={!!formErrors.confirmPassword}
-                  helperText={formErrors.confirmPassword}
+                  helperText={formErrors.confirmPassword || 'Required'}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -210,7 +239,10 @@ function SellerRegister() {
                         </Button>
                       </label>
                       {fileError && (
-                        <Typography variant="body2" sx={{ color: "red", marginTop: 1 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "red", marginTop: 1 }}
+                        >
                           {fileError}
                         </Typography>
                       )}

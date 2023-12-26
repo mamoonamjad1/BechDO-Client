@@ -21,6 +21,7 @@ import {
 function CheckoutForm(props) {
   console.log("Props", props);
   const [stripe, setStripe] = useState(null);
+  const [error,setError] = useState(false)
   const [cartItems, setCartItems] = React.useState([]);
   const [elements, setElements] = useState(null);
   const formData = useSelector((state) => state.orderDetailReducer); // Use useSelector to fetch formData
@@ -48,6 +49,13 @@ function CheckoutForm(props) {
   }, 0);
 
   const handleSubmit = async (event) => {
+    console.log("Form Data", formData);
+    if(formData.firstName===""||formData.lastName===""||formData.address===""||formData.phone===""||formData.email===""||formData.city===""||formData.postal===""){
+      toast.error("Please fill all the fields")
+
+      return;
+    }
+
     event.preventDefault();
 
     if (!stripe || !elements) {
@@ -77,7 +85,7 @@ function CheckoutForm(props) {
             dispatchRedux(setCity(""));
             dispatchRedux(setPostal(""));
             dispatchRedux(setPhone(""));
-              navigate("/");
+            navigate("/");
             });
         });
     }
@@ -85,6 +93,7 @@ function CheckoutForm(props) {
 
   return (
     <div>
+     
       <div className="product-info">{/* Display product info here */}</div>
       <form onSubmit={handleSubmit}>
         <CardSection />

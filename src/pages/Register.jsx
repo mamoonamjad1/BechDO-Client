@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -20,32 +20,39 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 function Register() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   // Check if the user is verified when the component mounts
-  //   axios
-  //     .get("http://localhost:4000/users/verify-status")
-  //     .then((response) => {
-  //       const { data } = response;
-  //       if (data.verified) {
-  //         navigate("/"); // Redirect to homepage if verified
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error checking verification status:", error);
-  //     });
-  // }, []); // Empty dependency array ensures the effect runs only once on mount
+  const [formErrors, setFormErrors] = useState({});
 
   const handleSubmit = (event) => {
     event.preventDefault();
     setLoading(true);
-
+  
     const form = event.currentTarget;
     const data = new FormData(form);
-
+  
+    // Validate if all required fields are filled
+    const requiredFields = ["firstName", "lastName", "email", "password", "confirmPassword"];
+    const newFormErrors = {};
+  
+    requiredFields.forEach((field) => {
+      const value = data.get(field);
+      if (!value || value.trim() === "") {
+        newFormErrors[field] = "This field is required.";
+      }
+    });
+  
+    // Display errors and prevent submission if any required field is empty
+    if (Object.keys(newFormErrors).length > 0) {
+      toast.error("Please fill out all the required fields.", {
+        position: toast.POSITION.TOP_CENTER,
+      });
+      setFormErrors(newFormErrors);
+      setLoading(false);
+      return;
+    }
+  
     const password = data.get("password");
     const confirmPassword = data.get("confirmPassword");
-
+  
     if (password === confirmPassword) {
       const request = {
         firstName: data.get("firstName"),
@@ -54,7 +61,7 @@ function Register() {
         password: password,
         confirmPassword: confirmPassword,
       };
-
+  
       axios
         .post("http://localhost:4000/users/register", request)
         .then(() => {
@@ -64,8 +71,9 @@ function Register() {
           // Redirect to the waiting page after successful registration
           navigate("/login");
         })
-        .catch(() => {
-          console.log("Unsuccessful");
+        .catch((err) => {
+          console.log("Unsuccessful",err);
+          toast.error(err.response.data)
         })
         .finally(() => {
           setLoading(false);
@@ -73,8 +81,11 @@ function Register() {
     } else {
       // Handle case when passwords don't match
       console.log("Passwords do not match");
+      toast.error("Passwords Do Not Match");
+      setLoading(false);
     }
   };
+  
 
   return (
     <ThemeProvider theme={createTheme()}>
@@ -105,6 +116,8 @@ function Register() {
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  error={!!formErrors.firstName}
+                  helperText={formErrors.firstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -115,6 +128,8 @@ function Register() {
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
+                  error={!!formErrors.lastName}
+                  helperText={formErrors.lastName}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -125,6 +140,8 @@ function Register() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  error={!!formErrors.email}
+                  helperText={formErrors.email}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -136,6 +153,8 @@ function Register() {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  error={!!formErrors.password}
+                  helperText={formErrors.password}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -147,14 +166,11 @@ function Register() {
                   type="password"
                   id="confirmPassword"
                   autoComplete="new-password"
+                  error={!!formErrors.confirmPassword}
+                  helperText={formErrors.confirmPassword}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="I want to receive marketing emails and promotions."
-                />
-              </Grid>
+             
             </Grid>
             <Button
               type="submit"
@@ -163,7 +179,7 @@ function Register() {
               sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
-              {loading ? "Loading..." : "Sign UP"}
+              {loading ? "Loading..." : "Sign Up"}
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>

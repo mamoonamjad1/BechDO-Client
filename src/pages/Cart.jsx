@@ -46,9 +46,11 @@ axios.get(`http://localhost:4000/order/get/${user.userId}`)
 .then((res)=>{
 console.log("CART:",res)
 setCartItems(res.data)
-//dispatchRedux()
+dispatchRedux(SetOrderCount(res.data.length))
 })
 },[])
+
+
 
   const handleDialogOpen = () => {
     //setOpen(true);

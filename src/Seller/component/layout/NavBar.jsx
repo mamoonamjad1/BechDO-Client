@@ -104,7 +104,14 @@ const NavBar = () => {
       <AppBar position="sticky" sx={{ backgroundColor: "#0C134F" }}>
         <Toolbar>
           <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
-            <Box display="flex" alignItems="center" onClick={()=>{navigate('/seller/pages/dashboard')}}>
+            <Box display="flex" alignItems="center" onClick={()=>{
+              if(sellerToken)
+              {
+                navigate('/seller/pages/dashboard')
+              }else{
+                navigate('/seller/sign-in')
+              }
+              }}>
               <Typography variant="h6">
                 BECHDO
                 <Typography color="orange" component="span">

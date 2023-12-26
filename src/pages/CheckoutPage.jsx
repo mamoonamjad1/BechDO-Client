@@ -50,6 +50,7 @@ const CheckoutPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const user = useSelector((state) => state.authReducer);
   const [payOnline, setPayOnline] = useState(false);
+  const [error,setError] = useState(false)
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
     cardHolderName: "",
@@ -111,18 +112,6 @@ const CheckoutPage = () => {
     }));
   };
 
-  const handlePayOnlineChange = (e) => {
-    setPayOnline(e.target.checked);
-  };
-
-  const handleCheckout = () => {
-    // Implement your checkout logic here, e.g., sending order details to the server
-    console.log("Order details:", formData);
-
-    if (payOnline) {
-      console.log("Card details:", cardDetails);
-    }
-  };
 
   // Calculate the total amount
   const totalAmount = cartItems.reduce((total, item) => {
@@ -143,6 +132,7 @@ const CheckoutPage = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <TextField
+                    error={error}
                     name="firstName"
                     label="First Name"
                     variant="outlined"

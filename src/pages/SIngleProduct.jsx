@@ -245,6 +245,8 @@ const SingleProduct = () => {
           <Typography variant="caption" gutterBottom >
             Category: {product.category?.name || "N/A"}
           </Typography>
+          <br/>
+          <Typography variant="caption"> Quantity: {product.quantity}</Typography>
 
           <br />
           <Button
@@ -289,7 +291,7 @@ const SingleProduct = () => {
             </Typography>
           )}
 
-          <Typography variant="body1"></Typography>
+         
           <Typography variant="body1" sx={{ color: timerColor }}>
             {isAuctionEnded
               ? "Auction Ended"

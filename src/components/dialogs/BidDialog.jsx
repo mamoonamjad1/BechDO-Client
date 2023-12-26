@@ -82,7 +82,7 @@ const BidDialog = ({ open, handleCloseBid, productID, price }) => {
             //   setSuccessDialogOpen(true);
             // }}
             disabled={
-              !price || !price.$numberDecimal || parseFloat(currentPrice) <= parseFloat(price.$numberDecimal) || currentPrice == ''
+              !price || !price.$numberDecimal || parseFloat(currentPrice) <= parseFloat(price.$numberDecimal) || currentPrice == '' || isNaN(currentPrice)
             }
           >
             Place Bid

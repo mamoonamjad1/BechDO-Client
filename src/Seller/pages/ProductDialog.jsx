@@ -243,10 +243,10 @@ const ProductDialog = ({ open, handleClose }) => {
 
   const handleQuantityChange = (event) => {
     const value = event.target.value;
-    if (value < 0 || isNaN(value)) {
+    if (value <= 0 || isNaN(value)) {
       setIsQuantityValid(false);
       setQuantityErrorMsg(
-        "Quantity cannot be less than 0 and cannot be an alphabet or word"
+        "Quantity cannot be less than or equal to 0 and cannot be an alphabet or word"
       );
     } else {
       setIsQuantityValid(true);
@@ -257,10 +257,10 @@ const ProductDialog = ({ open, handleClose }) => {
 
   const handleBasePriceChange = (event) => {
     const value = event.target.value;
-    if (value < 0 || isNaN(value)) {
+    if (value <= 0 || isNaN(value)) {
       setIsBasePriceValid(false);
       setBasePriceErrorMsg(
-        "Base Price cannot be less than 0 and cannot be an alphabet or word"
+        "Base Price cannot be less than or equal to 0 and cannot be an alphabet or word"
       );
     } else {
       setIsBasePriceValid(true);
@@ -276,10 +276,10 @@ const ProductDialog = ({ open, handleClose }) => {
   };
   const handleDurationInput = (event) => {
     const value = event.target.value;
-    if (value < 0 || isNaN(value)) {
+    if (value <= 0 || isNaN(value)) {
       setIsDurationValid(false);
       setDurationErrorMsg(
-        "Duration cannot be less than 0 and cannot be an alphabet or word"
+        "Duration cannot be less than or equal to 0,and cannot be an alphabet or word"
       );
     } else {
       setIsDurationValid(true);
