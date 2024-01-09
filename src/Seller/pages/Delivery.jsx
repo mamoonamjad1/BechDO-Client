@@ -13,14 +13,12 @@ import {
   Menu,
   MenuItem,
   Grid,
-  Box,
 } from '@mui/material';
-import axios from 'axios';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import jwtDecode from 'jwt-decode';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import { toast } from 'react-toastify';
-
+import axios from 'axios';
+import jwtDecode from 'jwt-decode';
 const StyledCard = styled(Card)(({ theme }) => ({
   border: '1px solid #e0e0e0',
   borderRadius: '8px',
@@ -33,17 +31,12 @@ const StyledCardContent = styled(CardContent)(({ theme }) => ({
   alignItems: 'flex-start',
 }));
 
-// const StyledActions = styled('div')(({ theme }) => ({
-//   marginTop: theme.spacing(2),
-//   alignSelf: 'flex-end',
-// }));
-
-const PAGE_SIZE = 12; // Number of cards per page
+const PAGE_SIZE = 12;
 
 const Delivery = () => {
   const token = localStorage.getItem('sellerToken');
-  const [openDialog, setOpenDialog] = React.useState(false);
-  const [selectedDelivery, setSelectedDelivery] = React.useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedDelivery, setSelectedDelivery] = useState(null);
   const decode = jwtDecode(token);
   const [deliveries, setDeliveries] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -87,7 +80,6 @@ const Delivery = () => {
     handleClose();
   };
 
-  
   const renderCards = () => {
     const startIndex = (page - 1) * PAGE_SIZE;
     const endIndex = startIndex + PAGE_SIZE;
@@ -137,10 +129,14 @@ const Delivery = () => {
             <Typography>
               Products:
             </Typography>
-            <li >
-              {delivery.products.name} (Quantity: {delivery.products.quantity}, Price: {delivery.products.currentPrice.$numberDecimal.toString()})
-            </li>
-            
+            <ul>
+              {Array.isArray(delivery.products) &&
+                delivery.products.map((product) => (
+                  <li key={product.productId}>
+                    {product.name} (Quantity: {product.quantity}, Price: {product.currentPrice.$numberDecimal.toString()})
+                  </li>
+                ))}
+            </ul>
           </StyledCardContent>
         </StyledCard>
       </Grid>
@@ -168,11 +164,8 @@ const Delivery = () => {
         Seller Deliveries
       </Typography>
       <Typography variant="h6" gutterBottom sx={{ mt: 3, display: 'flex', alignItems: 'center', color:'red' }}>
-  Deliveries To Make <ArrowRightAltIcon />
-  {/* <Button variant='contained' onClick={() => { setOpenDialog(true) }}>
-    Download Excel for Deliveries
-  </Button> */}
-</Typography>
+        Deliveries To Make <ArrowRightAltIcon />
+      </Typography>
 
       <Grid container spacing={2}>
         {renderCards()}
@@ -194,21 +187,6 @@ const Delivery = () => {
           </Button>
         ))}
       </div>
-      {/* <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Generate Statement</DialogTitle>
-        <DialogContent>
-        DO YOU WANT TO DOWNLOAD DELIVERIES IN EXCEL FILE?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="warning" variant='contained'>
-            Close
-          </Button>
-          <Button color="success" variant='contained' onClick={downloadDeliveries}>
-            Download
-          </Button>
-          {/* Add other invoice actions here */}
-        {/* </DialogActions>
-      </Dialog> */} 
     </Container>
   );
 };
