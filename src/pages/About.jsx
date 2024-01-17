@@ -12,11 +12,7 @@ const teamMembers = [
     email: 'mamoon.amjad17@gmail.com',
     image: '../../images/M-1.jpg', // Provide the actual image path
   },
-  {
-    name: 'Esha Ilyas',
-    email: 'eshailyas2001@gmail.com',
-    image: '../../images/E-1.jpg', // Provide the actual image path
-  },
+
 ];
 
 

@@ -7,18 +7,16 @@ import {
   Button,
   styled,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Menu,
   MenuItem,
   Grid,
 } from '@mui/material';
+import jwtDecode from 'jwt-decode';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
+
 const StyledCard = styled(Card)(({ theme }) => ({
   border: '1px solid #e0e0e0',
   borderRadius: '8px',
@@ -35,9 +33,9 @@ const PAGE_SIZE = 12;
 
 const Delivery = () => {
   const token = localStorage.getItem('sellerToken');
+  const decode = jwtDecode(token);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState(null);
-  const decode = jwtDecode(token);
   const [deliveries, setDeliveries] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [page, setPage] = useState(1);
@@ -47,13 +45,14 @@ const Delivery = () => {
   };
 
   useEffect(() => {
+    console.log("SELLER", decode._id);
     axios
       .get(`http://localhost:4000/order/delivery/${decode._id}`)
       .then((res) => {
         console.log('ORDERS', res);
         setDeliveries(res.data);
       });
-  }, []);
+  }, [decode._id]);
 
   const handleClick = (event, delivery) => {
     setAnchorEl(event.currentTarget);
@@ -64,31 +63,32 @@ const Delivery = () => {
     setAnchorEl(null);
   };
 
-  const handleStatusChange = (delivery, status) => {
-    console.log(status);
-    axios
-      .post(`http://localhost:4000/order/update-status/${delivery._id}`, {
-        status,
-      })
-      .then((res) => {
-        toast.success('Mail Sent to Buyer regarding Delivery');
-        window.location.reload();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    handleClose();
+  const handleStatusChange = (status) => {
+    if (selectedDelivery) {
+      axios
+        .post(`http://localhost:4000/order/update-status/${selectedDelivery._id}`, {
+          status,
+        })
+        .then((res) => {
+          toast.success('Mail Sent to Buyer regarding Delivery');
+          window.location.reload();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      handleClose();
+    }
   };
 
   const renderCards = () => {
     const startIndex = (page - 1) * PAGE_SIZE;
     const endIndex = startIndex + PAGE_SIZE;
     return deliveries.slice(startIndex, endIndex).map((delivery) => (
-      <Grid item key={delivery.orderId} xs={12} md={6}>
+      <Grid item key={delivery._id} xs={12} md={6}>
         <StyledCard>
           <StyledCardContent>
             <Typography variant="h6" sx={{ backgroundColor: 'black', color: 'white' }}>
-              Order ID: {delivery._id}
+              Order ID: {delivery._id.substring(18,22)}
             </Typography>
             <Typography>
               Customer Name: {delivery.firstName} {delivery.lastName}
@@ -105,7 +105,14 @@ const Delivery = () => {
                 variant="contained"
                 onClick={(e) => handleClick(e, delivery)}
                 sx={{
-                  backgroundColor: getStatusColor(delivery.deliveryStatus),
+                  backgroundColor:
+                    delivery.deliveryStatus === 'InTransit'
+                      ? 'orange'
+                      : delivery.deliveryStatus === 'Delivered'
+                      ? 'green'
+                      : delivery.deliveryStatus === 'Recieved'
+                      ? 'red'
+                      : 'inherit',
                 }}
               >
                 {delivery.deliveryStatus} <KeyboardArrowDownIcon />
@@ -115,45 +122,27 @@ const Delivery = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={() => handleStatusChange(delivery, 'InTransit')} sx={{color:'orange'}}>
+                <MenuItem onClick={() => handleStatusChange('InTransit')} sx={{ color: 'orange' }}>
                   In Transit
                 </MenuItem>
-                <MenuItem onClick={() => handleStatusChange(delivery, 'Delivered')} sx={{color:'green'}}>
+                <MenuItem onClick={() => handleStatusChange('Delivered')} sx={{ color: 'green' }}>
                   Delivered
                 </MenuItem>
-                <MenuItem onClick={() => handleStatusChange(delivery, 'Recieved')} sx={{color:'red'}}>
+                <MenuItem onClick={() => handleStatusChange('Recieved')} sx={{ color: 'red' }}>
                   Received
                 </MenuItem>
               </Menu>
             </Typography>
             <Typography>
-              Products:
+              Products: {delivery.products.name}
+              <br />
+              Quantity: {delivery.products.quantity}
+              <br />
             </Typography>
-            <ul>
-              {Array.isArray(delivery.products) &&
-                delivery.products.map((product) => (
-                  <li key={product.productId}>
-                    {product.name} (Quantity: {product.quantity}, Price: {product.currentPrice.$numberDecimal.toString()})
-                  </li>
-                ))}
-            </ul>
           </StyledCardContent>
         </StyledCard>
       </Grid>
     ));
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'InTransit':
-        return 'orange';
-      case 'Delivered':
-        return 'green';
-      case 'Recieved':
-        return 'red';
-      default:
-        return 'inherit';
-    }
   };
 
   const pageCount = Math.ceil(deliveries.length / PAGE_SIZE);
@@ -163,7 +152,7 @@ const Delivery = () => {
       <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', mt: 3 }}>
         Seller Deliveries
       </Typography>
-      <Typography variant="h6" gutterBottom sx={{ mt: 3, display: 'flex', alignItems: 'center', color:'red' }}>
+      <Typography variant="h6" gutterBottom sx={{ mt: 3, display: 'flex', alignItems: 'center', color: 'red' }}>
         Deliveries To Make <ArrowRightAltIcon />
       </Typography>
 

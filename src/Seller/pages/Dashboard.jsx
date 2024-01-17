@@ -465,7 +465,7 @@ export default function DashBoard() {
               boxShadow: "10px 10px 10px rgba(0.5, 0.5, 0, 0.5)",
             }}
           >
-            <Typography variant="h6">Total Earning</Typography>
+            <Typography variant="h6">Earning</Typography>
             <Typography variant="h4">
               ${amount.totalEarnings} {/* Display the total currentPrice */}
             </Typography>

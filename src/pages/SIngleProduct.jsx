@@ -285,8 +285,8 @@ const SingleProduct = () => {
             </Typography>
           )}
           {product.currentPrice && (
-            <Typography variant="h6">
-              Current Price: $
+            <Typography variant="h6" sx={{color:'red'}}>
+              Current Bid: $
               {parseFloat(product.currentPrice.$numberDecimal).toFixed(2)}
             </Typography>
           )}
